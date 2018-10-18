@@ -8,8 +8,11 @@ namespace core;
 class Response
 {
     protected $data;
-    protected $head;
-    function __construct($data='')
+    protected $head=[];
+    protected $code=200;
+    protected $charset='utf-8';
+    protected $type='text';
+    function __construct($data='',$type='',$code=0,$head=[])
     {
        $this->data=$data;
         if(is_array($this->data))
@@ -17,8 +20,16 @@ class Response
        else
             echo $this->data;   
     }
-    public static function output($content='')
+    public static function output($content='',$type='',$code=0,$head=[])
     {
         return(new self($content));       
+    }
+    function __destruct()
+    {
+        unset($this->data);
+    }
+    function send()
+    {
+        
     }
 }

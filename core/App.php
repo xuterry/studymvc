@@ -7,10 +7,11 @@ app加载运行类
 */
 class App
 {
-    static private $module='';
-    static private $controller;
+    static private $module='';//获取模型
+    static private $controller;//获取控制器
     static private $method;
     static private $params;
+    //初始
    public static  function init()
     {
         $infos=Module::getname();
@@ -21,6 +22,7 @@ class App
         self::load_controller();
         
     }
+    //运行
     public static function run()
     {
         try{
@@ -29,11 +31,12 @@ class App
         }catch(\Exception $e){
             if(self::debug()){
             echo $e->getMessage().$e->getLine();
-            var_dump($e);
+            var_dump($e);//调试
            // print_r($e->xdebug_message);
             }
         }
     }
+    //载入模块
     public static function load_module()
     {
         $module_name=self::$module;
@@ -42,6 +45,10 @@ class App
             throw new \Exception($module_name.' module not exists');
             return $module;
     }
+    /**
+     * 载入控制器
+     * @throws \Exception
+     */
     public static function load_controller()
     {
         $module=self::load_module();
@@ -50,6 +57,13 @@ class App
         if(!is_file($controller))
             throw new \Exception($controller_name.' controller not exists');
     }
+    /**
+     * 判断方法是否存在
+     * @param $class
+     * @param  $method
+     * @throws \Exception
+     * @return number
+     */
     public static function exists_method($class,$method)
     {
         if(!class_exists($class,1))
@@ -59,11 +73,19 @@ class App
         else 
             throw new \Exception($class.'::'.$method.' method not exists');
     }
+    /**
+     * 判断是否开启调试
+     * @return number
+     */
     public static function debug()
     {
         if(Config::get('debug'))
         return 1;
     }
+    /**
+     * 执行app，返回结果，输出
+     * @throws \Exception
+     */
     public static function exec()
     {
         $method=self::$method;

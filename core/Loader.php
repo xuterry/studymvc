@@ -3,6 +3,7 @@ namespace core;
 
 /**
  * /xtw 2018
+ * 自动加载类
  */
 class Loader
 {
@@ -24,7 +25,11 @@ class Loader
     {
         return spl_autoload_register($name);
     }
-
+/**
+ * 类不存在时自动加载
+ * @param string $name
+ * @return boolean
+ */
     static function loadclass($name)
     {
         // echo $name.'<br>';
@@ -58,7 +63,9 @@ class Loader
         }
         return false;
     }
-
+/**
+ * 异常处理
+ */
     public static function excep()
     {
         error_reporting(E_ALL);
@@ -116,7 +123,10 @@ class Loader
         $app_function = ROOT_PATH . 'app' . DS . 'common.php';
         require_once $app_function;
     }
-
+/**
+ * 加载目录下的文件
+ * @param unknown $path
+ */
     public static function include_path($path)
     {
         is_dir($path) ? $getdir = scandir($path) : $getdir = [];

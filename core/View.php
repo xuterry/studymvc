@@ -4,6 +4,7 @@ namespace core;
 /xtw
 2018
 视图基础类
+集成think,smarty两个模板引擎
 */
 
 class View
