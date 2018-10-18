@@ -37,4 +37,5 @@ return [
         // 缓存有效期 0表示永久缓存
         'expire' => 1,
     ],
+    'template'=>['type'=>'Think']
 ];
