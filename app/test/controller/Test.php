@@ -1,6 +1,7 @@
 <?php
 namespace app\test\controller;
 use core\Controller;
+use core\Response;
 /**
 /xtw
 2018
@@ -18,8 +19,11 @@ class Test extends Controller
          $this->assign('hello','hello world');
          $this->assign('test',[['v'=>'aaaaa'],['v'=>'ddd']]);
          $paginer=[1,2,3,4,5,6,7,8,9,10];
-         echo '中国';exit();
-         return $this->display("monitor");
+         $re=new Response($paginer,'json');
+         $re->send();
+         //return $re;
+         //echo '中国';exit();
+      // return $this->display("monitor");
         //echo $content;
     }
 }

@@ -99,7 +99,7 @@ class App
         }
         if(is_callable(array($classname,$method))){
             $app=new $classname;
-            Response::output($app->$method($params));
+          Response::instance()->send(($app->$method($params)));
         //  call_user_func_array([$app,$method], self::$params);
         }
         else 
