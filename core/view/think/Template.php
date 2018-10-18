@@ -463,7 +463,7 @@ class Template
                     $file  = $array['file'];
                     unset($array['file']);
                     // 分析模板文件名并读取内容
-                    $parseStr = $this->parseTemplateName("test/header");
+                    $parseStr = $this->parseTemplateName($file);
                     foreach ($array as $k => $v) {
                         // 以$开头字符串转换成模板变量
                         if (0 === strpos($v, '$')) {

@@ -7,6 +7,7 @@ namespace core;
 */
 class Controller
 {
+    //视图
     protected $view;
     function __construct()
     {

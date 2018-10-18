@@ -1,34 +1,6 @@
 <?php
 
-// +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: 流年 <liu21st@gmail.com>
-// +----------------------------------------------------------------------
-
 // 应用公共文件
-function hmac($data, $key)
-{
-    if (function_exists('hash_hmac')) {
-        return hash_hmac('md5', $data, $key);
-    }
-    
-    $key = (strlen($key) > 64) ? pack('H32', 'md5') : str_pad($key, 64, chr(0));
-    $ipad = substr($key, 0, 64) ^ str_repeat(chr(0x36), 64);
-    $opad = substr($key, 0, 64) ^ str_repeat(chr(0x5C), 64);
-    return md5($opad . pack('H32', md5($ipad . $data)));
-}
-
-function getsign()
-{
-    $secret = '7b58254791ada6c0194e6341953f862aff9a91b5';
-    $cmd = "[{\"cmd\":\"user/userInfo\",\"body\":{}}]";
-    return hmac($cmd, $secret);
-}
 
 /**
  * 根据start,end获取客串的内容,need=1表示没有搜索到end截取start形如的位置
