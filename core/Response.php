@@ -40,9 +40,9 @@ class Response
      * @param array $head            
      * @return \core\Response
      */
-    public static function instance()
+    public static function instance($data = '', $type = '', $code = 0, $head = [])
     {    
-        return (new self());
+        return (new self($data, $type, $code, $head));
     }
 
     /**
@@ -68,13 +68,13 @@ class Response
  */
    protected function init($obj)
    {
-       if($obj instanceof Response){
-       $this->head=$obj->head;
-       $this->charset=$obj->charset;
-       $this->data=$obj->data;
-       $this->code=$obj->code;
-       $this->type=$obj->type;
-       }else
+       if($obj instanceof $this){
+            $this->head = $obj->head;
+            $this->charset = $obj->charset;
+            $this->data = $obj->data;
+            $this->code = $obj->code;
+            $this->type = $obj->type;
+        }else
            $this->data=$obj;
    }
     /**

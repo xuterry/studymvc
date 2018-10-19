@@ -99,6 +99,8 @@ class App
         }
         if(is_callable(array($classname,$method))){
             $app=new $classname;
+            //输出
+          //  var_dump($app->$method($params));
           Response::instance()->send(($app->$method($params)));
         //  call_user_func_array([$app,$method], self::$params);
         }

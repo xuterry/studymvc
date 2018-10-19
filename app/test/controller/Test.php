@@ -20,8 +20,9 @@ class Test extends Controller
          $this->assign('test',[['v'=>'aaaaa'],['v'=>'ddd']]);
          $paginer=[1,2,3,4,5,6,7,8,9,10];
          $re=new Response($paginer,'json');
-         $re->send();
-         //return $re;
+         return Response::instance($paginer,'json');
+       //  $re->send();
+         return $re;
          //echo '中国';exit();
       // return $this->display("monitor");
         //echo $content;
