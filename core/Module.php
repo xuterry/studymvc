@@ -7,6 +7,7 @@ namespace core;
 class Module
 {
 
+    protected static $domain;
     /**
      * 获取模型，控制器等信息
      * 
@@ -17,8 +18,12 @@ class Module
     {
         $req = new Request();
         $url = $req->url();
+        self::$domain=$req->domain();
         $route = Route::get_route();
-        $infos = ($infos = $route ? self::parserouter($url, $route, $req->method()) : self::parseurl($url)) ? null : self::parseurl($url);
+        //var_dump($route);exit();
+        $infos = $route ? self::parserouter($url, $route, $req->method()) : self::parseurl($url);
+        $infos=$infos==false?self::parseurl($url):$infos;
+      //  var_dump($infos);
         if (is_null($infos))
             return false;
         return empty($name) ? $infos : $infos[$name];
@@ -56,6 +61,7 @@ class Module
         $parse = parse_url($url);
         $params = [];
         $paths = array_filter(explode("/", $parse['path']));
+       
         if (isset($paths[0])) {
             $module = $paths[0];
             unset($paths[0]);
@@ -101,20 +107,31 @@ class Module
             foreach ($route as $getmethod => $val) {
                 if ($getmethod == $method) {
                     foreach ($val as $v) {
+                        
+                        $checkurl=$url;
+                        if(strpos($v[0],'http://')!==false||strpos($v[0],'https://')!==false)
+                            $checkurl=self::$domain.'/'.$url;
+                      //  echo $checkurl;
                         $parttern = "/" . str_replace("/", "(\/)*", $v[0]) . "/";
-                        if (preg_match($parttern, $url, $match)) {
-
+                       // echo $parttern
+                        if (preg_match($parttern, $checkurl, $match)) {
+                    
                             unset($match[0]);
                             foreach ($match as $k0 => $v0) {
                                 if (empty($v0) || strpos($v0, ".") === 0 || $v0 == '/')
                                     unset($match[$k0]);
                             }
-                            $params = array_combine($v[2], $match);
+                            $v[1]=str_replace(self::$domain,'',$v[1]);
+                           // var_dump($v[2],$match,$v[1]);
+                            $params=[];
+                            if(sizeof($v[2])==sizeof($match))
+                            $params = array_combine($v[2], $match);                            
                             if (strpos($v[1], "/") === 0) {
-                                $paths = explode("/", substr($v[1], 1, - 1));
+                                $paths = explode("/", substr($v[1], 1));
                                 $module = $paths[0];
                                 $controller = isset($paths[1]) ? $paths[1] : 'index';
                                 $method = isset($paths[2]) ? $paths[2] : 'index';
+                               // var_dump($paths);   exit();
                             } else {
                                 $paths = array_filter(explode('/', $v[1]));
                                 $paths = array_reverse($paths);
@@ -132,5 +149,10 @@ class Module
             }
         }
         return false;
+    }
+    public static function checkDomain($str)
+    {
+        $preg="/(http:)|(https:)\/\/(.+).(.+)\w$/i";
+        return preg_match($preg,$str,$matchs)?$matchs:0;
     }
 }

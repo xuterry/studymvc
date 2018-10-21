@@ -3,19 +3,25 @@ namespace core;
 /**
 /xtw
 2018
+处理路由规则
 */
 class Route
 {
     static $routes=[];
     static $pattern=[];
     static $rules=[];
-    
+    /**
+     * 获取规则配置
+     */
     public static function get()
     {
         $config=Config::get('route');
         self::$routes=$config;
        // return $config?$config:false;
     }
+    /**
+     * 获取参数设置
+     */
     public static function set()
     {
         self::get();
@@ -24,11 +30,19 @@ class Route
             unset(self::$routes['__pattern__']);
         }
     }
+    /**
+     *  设置路由规则
+     * @param string $name
+     * @param mix $rule
+     * @param string $method
+     * @param string $preg
+     */
     public static function set_rules($name,$rule,$method='',$preg='')
     {
        $param='';
        $is_or=strpos($name,'[')?1:0;
-        $name=str_replace(["[","]",":"],[''],$name);
+       $name=str_replace(["[","]",":"],[''],$name); 
+       $name=strpos($name,'http')!==false?str_replace("//","://",$name):$name;      
         if(!empty($preg)){
             $param=array_keys($preg);
             foreach($preg as $k=>$v)
@@ -53,6 +67,9 @@ class Route
         $method=empty($method)?'get':(is_array($method)?$method['method']:$method);
         self::$rules[$method][]=[$name,$rule,$param];
     }
+    /**
+     * 注册路由规则
+     */
     public static function reg_route()
     {
         self::set();
@@ -75,6 +92,10 @@ class Route
            }
         }
     }
+    /** 
+     * 获取处理后的路由表
+     * @return array
+     */
     public static function  get_route()
     {
         self::reg_route();

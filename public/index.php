@@ -14,7 +14,6 @@ define('RUNTIME_PATH',ROOT_PATH.'runtime');
 define('TEMP_PATH',RUNTIME_PATH.DS.'temp');
 define('CORE_PATH',ROOT_PATH .'core');
 define('APP_PATH',ROOT_PATH.'app');
-require CORE_PATH.DS.'base.php';
 require CORE_PATH.DS.'loader.php';
 //include(CORE_PATH.DS.'app.php');
 //core\Loader::excep();

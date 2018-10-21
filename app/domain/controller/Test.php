@@ -1,5 +1,5 @@
 <?php
-namespace app\test\controller;
+namespace app\domain\controller;
 use core\Controller;
 use core\Response;
 use core\Request;
@@ -11,10 +11,9 @@ class Test extends Controller
 {
      function index($a=''){
        // echo 'hello kitty'.$a;
+       $req=new Request();
+      // $req->abc();
          $zip=new \ZipExtension();
-         $req=new Request();
-        var_dump( $req);exit();
-      //   $req->abc();
       //   $test=new Test2();
    //      $test->index('1');
         $rs= $zip->createFile('ddd','ssss.tst');

@@ -25,6 +25,7 @@ return [
         'blog/:year/:month'=>['blog/archive',['method'=>'get']],
         '12'=>['blog/get',['method'=>'get']],
         'blog/:name'=>['blog/read',['method'=>'get']],
+        'http://tp6.com/test/index/[:name]'=>['/domain/test/index',['method'=>'get']]
         
     ],
     'cache'      => [
