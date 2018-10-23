@@ -1,6 +1,5 @@
 <?php
 namespace core;
-
 /**
  * /xtw 2018
  * 自动加载类
@@ -137,5 +136,38 @@ class Loader
                 continue;
             require_once $path . $file;
         }
+    }
+    /**
+     * 开始记录运行信息，设置全局变量$__global
+     */
+    public static function logStart()
+    {
+        global $__global;
+        $__global['start_time']=microtime(1);
+        $__global['start_mem']=memory_get_usage();
+    }
+    /**
+     * 记录运行信息
+     */
+    public static function log($name,$var)
+    {
+        global $__global;
+        $__global[$name]=$var;
+    }
+    public static function logGet($name='')
+    {
+       global $__global;
+       if(!empty($name)&&!isset($__global[$name]))
+           return null;
+       // if($name=='trace')
+          self::logTrace();
+        return !empty($name)?$__global[$name]:$__global;
+    }
+    public static function logTrace()
+    {
+        global $__global;
+        $__global['trace'][ 'runtime ']=microtime(1)-$__global['start_time'];
+        $__global['trace'][' mem ']=get_round((memory_get_usage()-$__global['start_mem'])/1024);
+        $__global['trace']['includefile']=get_included_files();
     }
 }

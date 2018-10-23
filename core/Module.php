@@ -115,14 +115,14 @@ class Module
                         $parttern = "/" . str_replace("/", "(\/)*", $v[0]) . "/";
                        // echo $parttern
                         if (preg_match($parttern, $checkurl, $match)) {
-                    
+                           // var_dump($v,$parttern,$checkurl,$match);
                             unset($match[0]);
                             foreach ($match as $k0 => $v0) {
                                 if (empty($v0) || strpos($v0, ".") === 0 || $v0 == '/')
                                     unset($match[$k0]);
                             }
                             $v[1]=str_replace(self::$domain,'',$v[1]);
-                           // var_dump($v[2],$match,$v[1]);
+                           // var_dump($url,$v[2],$match,$v[1]);
                             $params=[];
                             if(sizeof($v[2])==sizeof($match))
                             $params = array_combine($v[2], $match);                            
@@ -131,7 +131,7 @@ class Module
                                 $module = $paths[0];
                                 $controller = isset($paths[1]) ? $paths[1] : 'index';
                                 $method = isset($paths[2]) ? $paths[2] : 'index';
-                               // var_dump($paths);   exit();
+                             //   var_dump($paths);   exit();
                             } else {
                                 $paths = array_filter(explode('/', $v[1]));
                                 $paths = array_reverse($paths);

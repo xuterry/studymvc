@@ -4,6 +4,7 @@ namespace core\view\think;
 
 use core\view\think\TagLib;
 use core\Module;
+use core\Cache;
 
 /**
  * ThinkPHP分离出来的模板引擎
@@ -55,6 +56,7 @@ class Template
      */
     public function __construct(array $config = [])
     {
+        
         $this->config['cache_path'] = TEMP_PATH;
         $this->config               = array_merge($this->config, $config);
 

@@ -23,4 +23,14 @@ class Controller
     {
         return $this->view->display($tpl,$var,$rep,$conf);
     }
+    /**
+     * 配置view config
+     * @param string $name
+     * @param string $value
+     * @return 
+     */
+    protected function config($name,$value=null)
+    {
+        return $this->view->config($name,$value);
+    }
 }

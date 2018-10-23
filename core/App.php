@@ -97,6 +97,7 @@ class App
                 $params.=$v.',';
             $params=substr($params,0,-1);
         }
+        Loader::log('params', $params);
         if(is_callable(array($classname,$method))){
             $app=new $classname;
           Response::instance()->send(($app->$method($params)));

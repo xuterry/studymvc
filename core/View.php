@@ -90,6 +90,7 @@ class View
     
     public function display($tpl='',$var=[],$replace=[],$config=[])
     {
+        
         $vars=array_merge(self::$var,$var,$this->data);
         $replace=array_merge($this->replace,$replace);
         
@@ -109,5 +110,11 @@ class View
         $content = ob_get_clean();
         return $content;
     }
-    
+    /**
+     * 配置引擎参数
+     */
+    public  function config($name,$value=null)
+    {
+        $this->engine->config($name,$value);
+    }
 }
