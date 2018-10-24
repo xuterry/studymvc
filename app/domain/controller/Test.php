@@ -16,15 +16,18 @@ class Test extends Controller
       // $req=new Request();
       // $req->abc();
       //cookie
+    // var_dump(phpinfo());exit();
       Cookie::set('abc',['aaaaaa','sssss','中国']);
       Cookie::set('ddddd','dddd');
       Cookie::clear();
       Cookie::delete('abc');
       var_dump(Cookie::get(''));
-         
+         Cache::init(['data_compress'=>1,'type'=>'redis']);
+         Cache::tag('cba',['abc']);
          Cache::set('abc',['sssssssssssss']);
+         Cache::set('abcds','ddddd');
+         //Cache::del('abc');
         var_dump( Cache::get('abc'));
-         
          $zip=new \ZipExtension();
       //   $test=new Test2();
    //      $test->index('1');
@@ -46,6 +49,7 @@ class Test extends Controller
       //   return $re;
          //echo '中国';exit();
         $this->config(['cache_id'=>'abcd','display_cache'=>1]);
+       // Cache::clear();
        return $this->display("monitor");
         //echo $content;
     }

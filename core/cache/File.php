@@ -2,7 +2,11 @@
 namespace core\cache;
 
 use core\cache\Driver;
-
+/**
+ * 文件类型缓存
+ * @author Administrator
+ *
+ */
 class File extends Driver
 {
 
@@ -24,7 +28,11 @@ class File extends Driver
             mkdir($this->options['path'], 0755, true);
         }
     }
-
+/**
+ * 清除缓存
+ * {@inheritDoc}
+ * @see \core\cache\Driver::clear()
+ */
     public function clear($tag = '')
     {
         if ($tag) {
@@ -47,13 +55,21 @@ class File extends Driver
         }
         return true;
     }
-
+/**
+ * 删除缓存
+ * {@inheritDoc}
+ * @see \core\cache\Driver::del()
+ */
     public function del($name = '')
     {
         $name = $this->getPreKey($name);
         return $this->unlink($name);
     }
-
+/**
+ * 获取缓存
+ * {@inheritDoc}
+ * @see \core\cache\Driver::get()
+ */
     public function get($name = '', $default = false)
     {
         $filename = $this->getPreKey($name);
@@ -68,7 +84,7 @@ class File extends Driver
                 return $default;
             }
             $this->expire = $expire;
-            $content = substr($content, 32);
+            $content = substr($content, 31);
             if ($this->options['data_compress'] && function_exists('gzcompress')) {
                 // 启用数据压缩
                 $content = gzuncompress($content);
@@ -92,7 +108,7 @@ class File extends Driver
         $data = serialize($value);
         if ($this->options['data_compress'] && function_exists('gzcompress'))
             $data = gzcompress($data, 5);
-        $data = "<?php\n//" . sprintf('%012d', $expire) . "\n exit();?>\n" . $data;
+        $data = "<?php\n//" . sprintf('%012d', $expire) . "\nexit();?>\n" . $data;
         if (file_put_contents($filename, $data)) {
             isset($tag) && $this->setTag($filename);
             clearstatcache();
@@ -100,12 +116,24 @@ class File extends Driver
         } else
             return false;
     }
-
+    public function has($name='')
+    {
+        return $this->get($name)?true:false;
+    }
+/**
+ * 删除缓存，删除文件
+ * @param string $path
+ * @return boolean
+ */
     protected function unlink($path)
     {
         return is_file($path) && unlink($path);
     }
-
+  /**
+   * 获取文件名
+   * {@inheritDoc}
+   * @see \core\cache\Driver::getPreKey()
+   */
      function getPreKey($name)
     {
         $name = md5($name);

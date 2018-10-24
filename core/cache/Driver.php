@@ -8,9 +8,36 @@ abstract class Driver
     protected $handler;
     protected  $options;
     protected $tag;
+    
+    /**
+     * 清除缓存
+     * @param string $tag
+     */
     abstract public  function clear($tag='');
+    
+    /**
+     * 根据name删除缓存
+     * @param string $name
+     */
     abstract public function del($name='');
+    
+    /**
+     * 获取缓存
+     * @param string $name
+     * @param string $default
+     */
     abstract public function get($name='',$default=false);
+    
+    /**
+     * 判断是否存在缓存
+     */
+    abstract public function has($name='');
+    /**
+     * 设置缓存
+     * @param ring $name
+     * @param mix $value
+     * @param number $expire
+     */
     abstract public function set($name,$value,$expire=null);
     
     public function pull($name)
@@ -32,20 +59,21 @@ abstract class Driver
            $key='tag_'.md5($name);
            $keys=is_string($keys)?explode(",",$keys):$keys;
            $keys=array_map([$this,'getPreKey'],$keys);
-           $values=$overwrite?$keys:array_merge($this->getTag($key),$keys);
-           $this->set($key,$values,0);
+           $values=$overwrite?$keys:array_unique(array_merge($this->getTag($name),$keys));
+          // var_dump($values);exit($key);
+           $this->set($key,implode(',',$values),0);
        }
        return $this;
        
    }
    public function getTag($name)
    {
-        $tags=$this->get(md5('tag_'.$name));
+        $tags=$this->get('tag_'.md5($name));
         return $tags?array_filter(explode(",",$tags)):[];
    }
    public function setTag($name)
    {
-       $key=md5('tag_'.$this->tag);
+       $key='tag_'.md5($this->tag);
        if($this->has($key)){
            $values=explode(",",$this->get($key));
            $values[]=$name;
@@ -55,7 +83,7 @@ abstract class Driver
    }
    public function getPreKey($name)
    {
-       return $this->option['prefix'].$name;
+       return $this->options['prefix'].$name;
    }
     
 }
