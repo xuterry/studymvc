@@ -36,6 +36,7 @@ class Cache
         if(!isset(self::$instance[$name])){
             self::$instance[$name]=new $classname($options);
         }
+        //echo $name;var_dump(self::$instance);
         return self::$instance[$name];
     }
     public static function clear($tag=null)
@@ -60,5 +61,12 @@ class Cache
     public static function tag($name,$keys=null,$overwrite=false)
     {
         return self::init()->tag($name,$keys,$overwrite);
+    }
+    /**
+     * 清空实例
+     */
+    public static function clearHandler()
+    {
+        self::$handler=[];
     }
 }

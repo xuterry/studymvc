@@ -39,6 +39,7 @@ return [
         'expire' => 1,
     ],
     'template'=>['type'=>'Think'],
+    
     'cookie'                 => [
         // cookie 名称前缀
         'prefix'    => '',
@@ -55,4 +56,39 @@ return [
         // 是否使用 setcookie
         'setcookie' => true,
     ],
+    
+    
+    'session'      => [
+        'id'             => '',       
+        'session_id' => '',
+        // SESSION 前缀
+        'prefix'         => 'session',
+        // 驱动方式 支持redis memcache
+        'type'           => '',
+        // 是否自动开启 SESSION
+        'auto_start'     => true,
+    ],
+    'database'=>[
+        'type'            => 'mysql',
+        // 服务器地址
+        'hostname'        => '127.0.0.1',
+        // 数据库名
+        'database'        => 'demo',
+        // 用户名
+        'username'        => 'root',
+        // 密码
+        'password'        => '',
+        // 端口
+        'hostport'        => '',
+        // 连接dsn
+        'dsn'             => '',
+        // 数据库连接参数
+        'params'          => [],
+        // 数据库编码默认采用utf8
+        'charset'         => 'utf8',
+        // 数据库表前缀
+        'prefix'          => 'think_'
+        
+    ],
+    
 ];

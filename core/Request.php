@@ -1,12 +1,13 @@
 <?php
 namespace core;
 use ArrayAccess;
+use IteratorAggregate;
 /**
 /xtw
 2018
 请求类,arrayAccess,可用数组方式提取参数
 */
-class Request implements ArrayAccess
+class Request implements ArrayAccess,IteratorAggregate
 {
    protected $data=[];
     function offsetSet($offset, $value)
@@ -19,7 +20,7 @@ class Request implements ArrayAccess
    }
    function offsetGet($offset)
    {
-       return $this->data[$offset];
+       return isset($this->data[$offset])?$this->data[$offset]:'';
    }
    function offsetUnset($offset)
    {
@@ -27,7 +28,7 @@ class Request implements ArrayAccess
    }
    function __get($offset)
    {
-       return $this->filter($this->data[$offset]);
+       return isset($this->data[$offset])?$this->filter($this->data[$offset]):'';
    }
    function __set($offset,$value)
    {
@@ -41,6 +42,10 @@ class Request implements ArrayAccess
    {
        return isset($this->data[$offset]);
    }
+   public function getIterator()
+   {
+       return new \ArrayIterator($this);
+   }
     function __construct(){
       //  var_dump($_SERVER);
        $this->data['url']=$_SERVER['REQUEST_URI'];
@@ -49,6 +54,7 @@ class Request implements ArrayAccess
         $this->data['get']=$_GET;
         $this->data['post']=$_POST;
         $this->data['domain']=$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'];
+        $this->urlPath=$this->urlPath();
         $this->setParmas();
     }
     /**
@@ -56,6 +62,10 @@ class Request implements ArrayAccess
      * @param string $name
      * @return string
      */
+    static function init()
+    {
+        return new self();
+    }
     public   function get($name='')
     {
         if(!empty($this->data['get'][$name]))
@@ -81,11 +91,17 @@ class Request implements ArrayAccess
     {
         return substr($this->data['url'],1);
     }
+    public function urlPath()
+    {
+        $parse=parse_url($this->url());
+        return !empty($parse['path'])?$parse['path']:'';
+    }
     /**
      * 设置参数进params
      */
     protected function setParmas()
     {
+        $this->data['params']=[];
         if(!empty($this->data['get'])){
             foreach($this->data['get'] as $k=>$v)
                 $this->data['params'][$k]=$v;
@@ -95,6 +111,12 @@ class Request implements ArrayAccess
                 $this->data['params'][$k]=$v;              
         }
     }
+    public function params($name)
+    {
+        if(empty($name))
+            return $this->data['params'];
+        return isset($this->data['params'][$name])?$this->data['params'][$name]:'';
+    }
     /**
      * 判断是否存在相差参数
      * @param string $name
@@ -102,11 +124,7 @@ class Request implements ArrayAccess
      */
     function has($name)
     {
-        if(isset($this->data[$name]))
-            return 1;        
-        if(isset($this->data['params'][$name]))
-            return 1;
-        return false;
+        return isset($this->data[$name])||isset($this->data['params'][$name]);
     }
     function __call($name,$param)
     {

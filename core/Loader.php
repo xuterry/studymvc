@@ -170,4 +170,16 @@ class Loader
         $__global['trace'][' mem ']=get_round((memory_get_usage()-$__global['start_mem'])/1024);
         $__global['trace']['includefile']=get_included_files();
     }
+    public static function parseName($name, $type = 0, $ucfirst = true)
+    {
+        if ($type) {
+            $name = preg_replace_callback('/_([a-zA-Z])/', function ($match) {
+                return strtoupper($match[1]);
+            }, $name);
+                
+                return $ucfirst ? ucfirst($name) : lcfirst($name);
+        }
+        
+        return strtolower(trim(preg_replace("/[A-Z]/", "_\\0", $name), "_"));
+    }
 }
