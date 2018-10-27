@@ -848,7 +848,7 @@ class Template
                             } else {
                                 $params = '';
                             }
-                            $parseStr = '\think\Request::instance()->' . $method . '(' . $params . ')';
+                            $parseStr = '\core\Request::instance()->' . $method . '(' . $params . ')';
                         } else {
                             switch ($this->config['tpl_var_identify']) {
                                 case 'array': // 识别为数组
@@ -947,31 +947,31 @@ class Template
         if ($vars) {
             switch ($type) {
                 case 'SERVER':
-                    $parseStr = '\\think\\Request::instance()->server(\'' . $param . '\')';
+                    $parseStr = '\\core\\Request::instance()->server(\'' . $param . '\')';
                     break;
                 case 'GET':
-                    $parseStr = '\\think\\Request::instance()->get(\'' . $param . '\')';
+                    $parseStr = '\\core\\Request::instance()->get(\'' . $param . '\')';
                     break;
                 case 'POST':
-                    $parseStr = '\\think\\Request::instance()->post(\'' . $param . '\')';
+                    $parseStr = '\\core\\Request::instance()->post(\'' . $param . '\')';
                     break;
                 case 'COOKIE':
-                    $parseStr = '\\think\\Cookie::get(\'' . $param . '\')';
+                    $parseStr = '\\core\\Cookie::get(\'' . $param . '\')';
                     break;
                 case 'SESSION':
-                    $parseStr = '\\think\\Session::get(\'' . $param . '\')';
+                    $parseStr = '\\core\\Session::get(\'' . $param . '\')';
                     break;
                 case 'ENV':
-                    $parseStr = '\\think\\Request::instance()->env(\'' . $param . '\')';
+                    $parseStr = '\\core\\Request::instance()->env(\'' . $param . '\')';
                     break;
                 case 'REQUEST':
-                    $parseStr = '\\think\\Request::instance()->request(\'' . $param . '\')';
+                    $parseStr = '\\core\\Request::instance()->request(\'' . $param . '\')';
                     break;
                 case 'CONST':
                     $parseStr = strtoupper($param);
                     break;
                 case 'LANG':
-                    $parseStr = '\\think\\Lang::get(\'' . $param . '\')';
+                    $parseStr = '\\core\\Lang::get(\'' . $param . '\')';
                     break;
                 case 'CONFIG':
                     $parseStr = '\\think\\Config::get(\'' . $param . '\')';
@@ -986,7 +986,7 @@ class Template
                     $parseStr = "date('Y-m-d g:i a',time())";
                     break;
                 case 'VERSION':
-                    $parseStr = 'THINK_VERSION';
+                    $parseStr = 'core_VERSION';
                     break;
                 case 'LDELIM':
                     $parseStr = '\'' . ltrim($this->config['tpl_begin'], '\\') . '\'';

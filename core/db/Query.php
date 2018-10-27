@@ -34,6 +34,7 @@ class Query
     protected $bind = [];
 
     protected static $info = [];
+    private static $event = [];
 
     private static $readMaster;
 
@@ -167,7 +168,8 @@ class Query
         $result = false;
         if (empty($this->option['fetch_sql']) && ! empty($this->options['cache'])) {
             $cache = $this->options['cache'];
-            $this->options['table'] = empty($this->options['table']) ? $this->getTable() : '';
+            if(empty($this->options['table']))
+              $this->options['table']=$this->getTable();
             $key = $this->getCacheKeyName($cache['key'], $field);
             $result = Cache::get($key);
         }
@@ -186,7 +188,7 @@ class Query
                 $this->cacheData($key, $result, $cache);
         } else
             $this->options = [];
-        return $result !== false ?: $default;
+         return $result !== false ?$result: $default;
     }
 
     protected function getCacheKeyName($key, $field)
@@ -242,7 +244,7 @@ class Query
             $this->options = [];
         return $result;
     }
-    public function count($field='')
+    public function count($field='*')
     {
         if(isset($this->options['group'])){
             $options=$this->getOptions();

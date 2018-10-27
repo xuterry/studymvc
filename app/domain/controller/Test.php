@@ -15,13 +15,17 @@ use core\Collection;
 */
 class Test extends Controller
 {
-     function index($a=''){
+    function __construct($s=1)
+    {
+        echo '__construct<br>';
+    }
+     function index($n){
        // echo 'hello kitty'.$a;
       // $req=new Request();
       // $req->abc();
       //cookie
     // var_dump(phpinfo());exit();
-   
+      echo $n;
      $a=true;
      echo $a?:3;
       $conn=Db::connect();

@@ -40,9 +40,9 @@ class Response
      * @param array $head            
      * @return \core\Response
      */
-    public static function instance()
+    public static function instance($data = '', $type = '', $code = 0, $head = [])
     {    
-        return (new self());
+        return (new self($data, $type , $code , $head ));
     }
 
     /**
@@ -104,12 +104,12 @@ class Response
        if(is_string($data))
            return (array)($data);
        if(is_object($data))
-           $return=(array)$data;
-       if(is_array($return)){
-           foreach($return as $key=>$value)
-               $return[$key]=$this->toArray($value);
+           $data=(array)$data;
+       if(is_array($data)){
+           foreach($data as $key=>$value)
+               $data[$key]=$this->toArray($value);
        }
-       return $return;
+       return $data;
     }
     /**
      * 设置返回类型的头部

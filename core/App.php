@@ -53,7 +53,7 @@ class App
     {
         $module=self::load_module();
         $controller_name=self::$controller;
-        $controller=$module.DS.'controller'.DS.$controller_name.'.php';
+        $controller=$module.DS.'controller'.DS.ucfirst($controller_name).'.php';
         if(!is_file($controller))
             throw new \Exception($controller_name.' controller not exists');
     }
@@ -91,16 +91,34 @@ class App
         $method=self::$method;
         $classname='app\\'.self::$module.'\\'.'controller\\'.ucfirst(self::$controller);
         if(self::exists_method($classname, $method)){
-        $params='';
+        $params=Request::init();;
         if(!empty(self::$params)){
             foreach(self::$params as $k=>$v)
-                $params.=$v.',';
-            $params=substr($params,0,-1);
+                $params[$k]=$v;
         }
         Loader::log('params', $params);
+        //exit($params);
         if(is_callable(array($classname,$method))){
+            $reflect=new \ReflectionMethod($classname,$method);
             $app=new $classname;
-          Response::instance()->send(($app->$method($params)));
+            $getparams=$reflect->getParameters();
+            $args=[];
+            foreach($getparams as $param){
+                $getname=$param->getName();
+                if(isset($params[$getname]))
+                    $args[$getname]=$params[$getname];
+                    elseif($param->isDefaultValueAvailable())
+                    $args[$getname]=$param->getDefaultValue();
+                    else{ 
+                        if($param->getClass())
+                             $args[$getname]=$params;
+                    }
+            }
+           if(count($args)==0)
+               Response::instance()->send($reflect->invoke($app));
+           else{
+             Response::instance()->send($reflect->invokeArgs($app, $args));
+           }
         //  call_user_func_array([$app,$method], self::$params);
         }
         else 

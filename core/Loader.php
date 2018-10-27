@@ -120,7 +120,9 @@ class Loader
     public static function auto_extend()
     {
         $app_function = ROOT_PATH . 'app' . DS . 'common.php';
+        $core_function=CORE_PATH.DS.'Functions.php';
         require_once $app_function;
+        require_once $core_function;
     }
 /**
  * 加载目录下的文件

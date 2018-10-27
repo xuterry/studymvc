@@ -91,7 +91,7 @@ class Module
             $params[isset($list[0]) ? $list[0] : 0] = isset($list[1]) ? $list[1] : '';
         }
         return [
-                    'module' => $module,'controller' => $controller,'method' => $method,'params' => $params
+                    'module' =>self::trimExt($module),'controller' =>self::trimExt($controller),'method' =>self::trimExt($method),'params' => $params
         ];
     }
 /**
@@ -140,7 +140,7 @@ class Module
                                 $module = isset($paths[2]) ? $paths[2] : 'index';
                             }
                             return [
-                                        'module' => $module,'controller' => $controller,'method' => $method,'params' => $params
+                                        'module' => self::trimExt($module),'controller' => self::trimExt($controller),'method' => self::trimExt($method),'params' => $params
                             ];
                             break;
                         }
@@ -154,5 +154,11 @@ class Module
     {
         $preg="/(http:)|(https:)\/\/(.+).(.+)\w$/i";
         return preg_match($preg,$str,$matchs)?$matchs:0;
+    }
+    static  function trimExt($name)
+    {
+        if(strpos($name,'.')!==false)
+            list($name,$ext)=explode('.',$name);
+        return $name;
     }
 }

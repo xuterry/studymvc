@@ -23,6 +23,10 @@ class Controller
     {
         return $this->view->display($tpl,$var,$rep,$conf);
     }
+    protected function fetch($tpl='',$var=[],$rep=[],$conf=[])
+    {
+        return $this->view->display($tpl,$var,$rep,$conf);
+    }
     /**
      * 配置view config
      * @param string $name
@@ -32,5 +36,35 @@ class Controller
     protected function config($name,$value=null)
     {
         return $this->view->config($name,$value);
+    }
+    protected function success($msg = '', $url = null, $data = '', $wait = 5, array $header = [])
+    {
+        Response::instance($msg.$this->tpl($url,$wait),'text',200)->send();
+        exit();
+    }
+    protected function error($msg = '', $url = null, $data = '', $wait = 5, array $header = [])
+    {
+         Response::instance($msg.$this->tpl($url,$wait),'text',404)->send();
+        exit();
+    }
+    protected function tpl($url,$wait)
+    {
+        $str="<p class='jump'>
+        页面自动 <a id='href' href='".$url."'>跳转</a> 等待时间： <b id='wait'>".$wait."</b>
+        </p>
+        <script type='text/javascript'>
+        (function(){
+            var wait = document.getElementById('wait'),
+                href = document.getElementById('href').href;
+            var interval = setInterval(function(){
+                var time = --wait.innerHTML;
+                if(time <= 0) {
+                    location.href = href;
+                    clearInterval(interval);
+                };
+            }, 1000);
+        })();
+    </script>";
+        return $str;
     }
 }

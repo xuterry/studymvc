@@ -146,4 +146,18 @@ class Session
    {
        self::$prefix=!empty($prefix)?$prefiex:self::$prefix;
    }
+   
+   public static function has($name, $prefix = null)
+   {
+       self::init();
+       $prefix = !is_null($prefix) ? $prefix : self::$prefix;
+       if (strpos($name, '.')) {
+           // 支持数组
+           list($name1, $name2) = explode('.', $name);
+           return $prefix ? isset($_SESSION[$prefix][$name1][$name2]) : isset($_SESSION[$name1][$name2]);
+       } else {
+           return $prefix ? isset($_SESSION[$prefix][$name]) : isset($_SESSION[$name]);
+       }
+   }
+   
 }
