@@ -14,6 +14,7 @@ class App
     //初始
    public static  function init()
     {
+        //Loader::logFile(request()->ip().request()->url());
         $infos=Module::getname();
         self::$module=$infos['module'];
         self::$controller=$infos['controller'];
@@ -30,8 +31,10 @@ class App
                self::exec();
         }catch(\Exception $e){
             if(self::debug()){
-            echo $e->getMessage().$e->getLine();
-            var_dump($e);//调试
+                $errmsg= static::parseException($e);
+                Loader::logFile($errmsg);
+                echo $errmsg;
+              // var_dump($e);//调试
            // print_r($e->xdebug_message);
             }
         }
@@ -126,4 +129,16 @@ class App
         unset($app,$params);
         }
     }
+   static function parseException($e)
+   {
+       $trace=$e->getTrace()[0];
+       if(isset($trace['file']))
+           $errmsg=$e->getMessage().' in '.$trace['file'].' line '.$trace['line'];
+       elseif(isset($trace['args'])){
+           $trace=$trace['args'];
+           $errmsg=$e->getMessage().' in '.$trace[2].' line '.$trace[3];          
+       }else
+           $errmsg=$e->getMessage().' in '.$e->getFile().' line '.$e->getLine();
+       return $errmsg;
+   }
 }

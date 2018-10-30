@@ -88,7 +88,6 @@ class Loader
     public static function apperror($errno, $errstr, $errfile = '', $errline = 0)
     {
         $exception = new \Exception($errstr);
-        // var_dump($exception);
         if (error_reporting() && $errno) {
             throw $exception;
         }
@@ -98,9 +97,8 @@ class Loader
 
     public static function appexception($e)
     {
-        echo 'type2';
-        var_dump($e);
-        // return $e;
+        $trace=$e->getTrace();
+         throw $e;
     }
 
     public static function appshutdown()
@@ -183,5 +181,28 @@ class Loader
         }
         
         return strtolower(trim(preg_replace("/[A-Z]/", "_\\0", $name), "_"));
+    }
+    public static function logFile($str)
+    {
+        $filename=LOG_PATH.DS.date("Ym").DS.date('d').'.log';
+        self::checkPath($filename);
+        $fh=fopen($filename,'a');
+        if($fh){
+            fwrite($fh,date('Y-m-d H:i:s').' '.$str."\n");
+            fclose($fh);
+        }
+    }
+    public static function checkPath($filename)
+    {
+           $paths=explode(DS,pathinfo($filename,PATHINFO_DIRNAME)); 
+            $Path = '';
+            if (sizeof($paths) > 0) {
+                foreach ($paths as $v) {
+                    $Path .= $v . DS;
+                    if (! is_dir($Path))
+                        mkdir($Path);
+                }
+            }
+            return true;
     }
 }
