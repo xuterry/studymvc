@@ -34,7 +34,7 @@ class Request implements ArrayAccess, IteratorAggregate
 
     function __get($offset)
     {
-        return isset($this->data[$offset]) ? $this->filter($this->data[$offset]) : '';
+        return isset($this->data[$offset]) ? $this->filter($this->data[$offset]) : $this->getServer($offset);
     }
 
     function __set($offset, $value)
@@ -47,7 +47,7 @@ class Request implements ArrayAccess, IteratorAggregate
         unset($this->data[$offset]);
     }
 
-    function __isset($offset)
+    function __isset($offset) 
     {
         return isset($this->data[$offset]);
     }
@@ -59,7 +59,7 @@ class Request implements ArrayAccess, IteratorAggregate
 
     function __construct()
     {
-       // var_dump($_SERVER);
+        //var_dump($_SERVER);
         $this->data['url'] = $_SERVER['REQUEST_URI'];
         // var_dump($this);exit();
         $this->data['ip']=$_SERVER['REMOTE_ADDR'];
@@ -82,6 +82,18 @@ class Request implements ArrayAccess, IteratorAggregate
     static function instance()
     {
         return new self();
+    }
+    /**
+     * 从server变量获取属性
+     */
+    protected function getServer($name)
+    {
+        foreach($_SERVER as $k=>$v)
+        {
+           if(strpos($k,strtoupper($name))>0)
+            return $v;
+        }
+        return '';
     }
     /**
      * 获取 get参数，过滤
@@ -173,7 +185,7 @@ class Request implements ArrayAccess, IteratorAggregate
     {
         $name = $this->parseName($name);
         if (! empty($method))
-            return isset($data[$method][$name]);
+            return isset($this->data[$method][$name]);
         else
             return isset($this->data[$name]) || isset($this->data['params'][$name]);
     }

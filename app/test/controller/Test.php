@@ -16,13 +16,14 @@ class Test extends Controller
          $size=200;
          $ex=new Exchange(['type'=>'Binance']);
          $ex=new Exchange(['type'=>'Coineal']);
-         // $ex=new Exchange();
+        //  $ex=new Exchange();
+         dump($ex->get_symbol_open());exit(); 
          //dump($ex->place_order('188','0.00000662','TRXBTC','sell-limit'));exit();
         //   dump($ex->cancel_order('75633174','trxbtc'));exit();
             //dump($ex->get_order_state('75633174','TRXBTC'));exit();
-          dump($ex->get_orders_matchresults($symbol));exit();
-          dump($ex->get_market_depth($symbol));exit();
-          dump($ex->get_market_detail($symbol));
+        //  dump($ex->get_orders_matchresults($symbol));exit();
+        //  dump($ex->get_market_depth($symbol));exit(); 
+          dump($ex->get_market_detail($symbol));exit();
           dump($ex->get_detail_merged($symbol));
           dump($ex->get_market_trade($symbol));exit();
           dump($ex->get_history_trade($symbol,$size));exit();

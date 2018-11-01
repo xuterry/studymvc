@@ -55,7 +55,6 @@ class Think
      */
     public function fetch($template, $data = [], $config = [])
     {
- 
         if ('' == pathinfo($template, PATHINFO_EXTENSION)) {
             // 获取模板文件名
             $template = $this->parseTemplate($template);
@@ -75,9 +74,9 @@ class Think
      * @param array     $config 模板参数
      * @return void
      */
-    public function display($template, $data = [], $config = [])
+    public function display($content, $data = [], $config = [])
     {
-        $this->template->display($template, $data, $config);
+        $this->template->display($content, $data, $config);
     }
 
     /**

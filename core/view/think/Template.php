@@ -153,6 +153,7 @@ class Template
      */
     public function fetch($template, $vars = [], $config = [])
     {
+        
         if ($vars) {
             $this->data = $vars;
         }
@@ -173,7 +174,7 @@ class Template
             if (!$this->checkCache($cacheFile)) {
                 // 缓存无效 重新模板编译
                 $content = file_get_contents($template);
-                $this->compiler($content, $cacheFile);
+                $this->compiler($content, $cacheFile,$template);
             }
             // 页面缓存
             ob_start();
@@ -304,7 +305,7 @@ class Template
      * @param string    $cacheFile 缓存文件名
      * @return void
      */
-    private function compiler(&$content, $cacheFile)
+    private function compiler(&$content, $cacheFile,$basefile='')
     {
         // 判断是否启用布局
         if ($this->config['layout_on']) {
@@ -324,7 +325,7 @@ class Template
         }
 
         // 模板解析
-        $this->parse($content);
+        $this->parse($content,$basefile);
         if ($this->config['strip_space']) {
             /* 去除html空格与换行 */
             $find    = ['~>\s+<~', '~>(\s+\n|\r)~'];
@@ -351,7 +352,7 @@ class Template
      * @param string $content 要解析的模板内容
      * @return void
      */
-    public function parse(&$content)
+    public function parse(&$content,$basefile='')
     {
         // 内容为空不解析
         if (empty($content)) {
@@ -364,7 +365,7 @@ class Template
         // 解析布局
         $this->parseLayout($content);
         // 检查include语法
-        $this->parseInclude($content);
+        $this->parseInclude($content,$basefile);
         // 替换包含文件中literal标签内容
         $this->parseLiteral($content);
         // 检查PHP语法
@@ -455,14 +456,22 @@ class Template
      * @param  string $content 要解析的模板内容
      * @return void
      */
-    private function parseInclude(&$content)
+    private function parseInclude(&$content,$basefile='')
     {
         $regex = $this->getRegex('include');
-        $func  = function ($template) use (&$func, &$regex, &$content) {
+        $func  = function ($template) use (&$func, &$regex, &$content,$basefile) {
             if (preg_match_all($regex, $template, $matches, PREG_SET_ORDER)) {
                 foreach ($matches as $match) {
                     $array = $this->parseAttr($match[0]);
                     $file  = $array['file'];
+                    $suffix=pathinfo($basefile,PATHINFO_EXTENSION);
+                    if($suffix!=''){
+                        $basepath=explode(DS,pathinfo($basefile,PATHINFO_DIRNAME));
+                        $filepaths=explode(DS,$file.'.'.$suffix);
+                        $thesame=array_intersect($basepath, $filepaths);
+                        $paths=array_merge($basepath,array_diff($filepaths,$thesame));
+                        $file=implode(DS,$paths);
+                    }
                     unset($array['file']);
                     // 分析模板文件名并读取内容
                     $parseStr = $this->parseTemplateName($file);

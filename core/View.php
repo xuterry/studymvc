@@ -87,8 +87,7 @@ class View
        $this->engine=new $class($configs);
        return $this;
     }
-    
-    public function display($tpl='',$var=[],$replace=[],$config=[])
+    public function fetch($tpl='',$var=[],$replace=[],$config=[])
     {
         
         $vars=array_merge(self::$var,$var,$this->data);
@@ -103,6 +102,29 @@ class View
             $replace = array_merge($this->replace, $replace, (array) $this->engine->config('tpl_replace_string'));
             $this->engine->config('tpl_replace_string', $replace);
             $this->engine->$method($tpl, $vars, $config);
+        } catch (\Exception $e) {
+            ob_end_clean();
+            throw $e;
+        }
+        $content = ob_get_clean();
+        return $content;
+    }
+    
+    public function display($content='',$var=[],$replace=[],$config=[])
+    {
+        
+        $vars=array_merge(self::$var,$var,$this->data);
+        $replace=array_merge($this->replace,$replace);
+        
+        ob_start();
+        ob_implicit_flush(0);
+        
+        try {
+            $method ='display';
+            // 允许用户自定义模板的字符串替换
+            $replace = array_merge($this->replace, $replace, (array) $this->engine->config('tpl_replace_string'));
+            $this->engine->config('tpl_replace_string', $replace);
+            $this->engine->$method($content, $vars, $config);
         } catch (\Exception $e) {
             ob_end_clean();
             throw $e;

@@ -10,7 +10,7 @@ function input($key = '', $default = null, $filter = '')
         $key = substr($key, 1);
         $has = true;
     }
-    if ($pos = strpos($key, '.')) {
+    if (strpos($key, '.')>0) {
         // 指定参数来源
         list($method, $key) = explode('.', $key, 2);
         if (!in_array($method, ['get', 'post', 'put', 'patch', 'delete', 'route', 'param', 'request', 'session', 'cookie', 'server', 'env', 'path', 'file'])) {
@@ -22,7 +22,7 @@ function input($key = '', $default = null, $filter = '')
         $method = 'param';
     }
     if (isset($has)) {
-        return request()->has($key);
+        return request()->has($key,$method);
     } else {
         return request()->$method($key);
     }

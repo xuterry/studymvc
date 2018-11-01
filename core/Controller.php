@@ -19,13 +19,13 @@ class Controller
     {
         return $this->view->assign($name,$value);
     }
-    protected function display($tpl='',$var=[],$rep=[],$conf=[])
+    protected function display($content='',$var=[],$rep=[],$conf=[])
     {
-        return $this->view->display($tpl,$var,$rep,$conf);
+        return $this->view->display($content,$var,$rep,$conf);
     }
     protected function fetch($tpl='',$var=[],$rep=[],$conf=[])
     {
-        return $this->view->display($tpl,$var,$rep,$conf);
+        return $this->view->fetch($tpl,$var,$rep,$conf);
     }
     /**
      * 配置view config
