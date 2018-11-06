@@ -28,10 +28,20 @@ function input($key = '', $default = null, $filter = '')
     }
 }
 if (!function_exists('dump')) {
-
-    function dump($var, $echo = true, $label = null)
+/**
+ * 输出多个变量
+ * @param mix $var
+ */
+    function dump($var)
     {
+        $args=func_get_args();
+        ob_start();
+        foreach($args as $var)
         var_dump($var);
+        $output = preg_replace('/\]\=\>\n(\s+)/m', '] => ', ob_get_clean());
+        $output= htmlspecialchars($output,ENT_SUBSTITUTE);
+        echo    '<pre>' .$output.'</pre>';
+        
     }
 }
 

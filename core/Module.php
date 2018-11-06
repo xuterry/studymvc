@@ -23,7 +23,7 @@ class Module
         //var_dump($route);exit();
         $infos = $route ? self::parserouter($url, $route, $req->method()) : self::parseurl($url);
         $infos=$infos==false?self::parseurl($url):$infos;
-      //  var_dump($infos);
+       //var_dump($infos);exit();
         if (is_null($infos))
             return false;
         return empty($name) ? $infos : $infos[$name];

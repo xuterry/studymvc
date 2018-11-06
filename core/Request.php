@@ -59,7 +59,7 @@ class Request implements ArrayAccess, IteratorAggregate
 
     function __construct()
     {
-        //var_dump($_SERVER);
+      //  var_dump($_SERVER);
         $this->data['url'] = $_SERVER['REQUEST_URI'];
         // var_dump($this);exit();
         $this->data['ip']=$_SERVER['REMOTE_ADDR'];
