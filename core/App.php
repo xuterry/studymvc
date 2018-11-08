@@ -32,8 +32,9 @@ class App
         }catch(\Exception $e){
             if(self::debug()){
                 $errmsg= static::parseException($e);
-                Loader::logFile($errmsg);
+                Loader::logFile($errmsg); 
                 echo $errmsg;
+                //dump(debug_backtrace());
               // var_dump($e);//调试
            // print_r($e->xdebug_message);
             }
