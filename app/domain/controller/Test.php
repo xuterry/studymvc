@@ -36,7 +36,7 @@ class Test extends Controller
      $rs=$conn->query(' SELECT * FROM `think_data` WHERE `id` > 1 limit 30');
     $rs=Collection::make($rs);
     $page=new Paginator($rs,5,1,count($rs));
-     var_dump($page);exit();
+    // var_dump($page);exit();
     //  $conn->free();
  //  $conn->abc();
       $getfiled=$conn->getFields('think_data');

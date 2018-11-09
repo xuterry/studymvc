@@ -6,11 +6,14 @@ namespace app\test\controller;
 */
 class Test2
 {
-    function index($a=''){
-        echo 'hello kitty'.$a;
-      //   $zip=new ZipExtension();
-       // $rs= $zip->createFile('ddd','ssss.tst');
-       //  writefile('','test.zip',$rs);
-        ;
+    function index(){
+        try{
+       dump(posix_getcwd(),posix_getpid());
+       $a=1;
+       var_export($a,1);
+        }catch(\Exception $e){
+            throw $e;
+        }
+      // pcntl_fork();
     }
 }

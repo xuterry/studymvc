@@ -39,6 +39,7 @@ if (!function_exists('dump')) {
         foreach($args as $var)
         var_dump($var);
         $output = preg_replace('/\]\=\>\n(\s+)/m', '] => ', ob_get_clean());
+        if(!extension_loaded('xdebug'))
         $output= htmlspecialchars($output,ENT_SUBSTITUTE);
         echo    '<pre>' .$output.'</pre>';
         

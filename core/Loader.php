@@ -67,6 +67,7 @@ class Loader
  */
     public static function excep()
     {
+
         error_reporting(E_ALL);
         set_error_handler([
                                 __CLASS__,'apperror'
@@ -103,8 +104,10 @@ class Loader
 
     public static function appshutdown()
     {
-        if (! is_null(error_get_last()))
+        if (! is_null(error_get_last())){
+          //  $exe
             var_dump(error_get_last());
+        }
     }
 
     protected static function isfatal($type)
