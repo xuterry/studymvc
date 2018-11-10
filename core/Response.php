@@ -22,7 +22,7 @@ class Response
     // 类型 暂时支持html/text json
     protected $type = 'text';
 
-    function __construct($data = '', $type = '', $code = 0, $head = [])
+    function __construct($data = '', $type = '', $code = 200, $head = [])
     {
         $this->code = ! empty($code) ? $code : $this->code;
         $this->type = empty($type) ? $this->type : $type;
@@ -40,7 +40,7 @@ class Response
      * @param array $head            
      * @return \core\Response
      */
-    public static function instance($data = '', $type = '', $code = 0, $head = [])
+    public static function instance($data = '', $type = '', $code = 200, $head = [])
     {    
         return (new self($data, $type , $code , $head ));
     }
@@ -116,12 +116,19 @@ class Response
      */
    protected function setcontenttype()
    {
+       if(empty($this->head['Content-Type'])){
        if($this->type=='text')
            $this->head['Content-Type'] ='text/html; charset=' . $this->charset;
        if($this->type=='json')
            $this->head['Content-Type']='application/json';
+       }
        return $this;
        
+   }
+   public function contentType($contentType, $charset = 'utf-8')
+   {
+       $this->head['Content-Type'] = $contentType . '; charset=' . $charset;
+       return $this;
    }
     function __destruct()
     {

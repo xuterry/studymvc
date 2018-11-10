@@ -66,6 +66,14 @@ class Model
         return $rs;
     }
     /**
+     * 根据id获取内容
+     */
+    public function get($id=0,$primary='')
+    {
+        empty($primary)&&$primary=$this->getFields(2);
+        return $this->db_query->where($primary,'=',$id)->select();
+    }
+    /**
      * 获取字段 type 0返回详细信息 1返回字段名 2返回主键
      * @param number $filter
      * @return array
@@ -92,7 +100,7 @@ class Model
      */
     public function fetchAll($fields=[],$limit=30)
     {
-        $fields=empty($fields)?$this->getFields(1):$fields;
+        empty($fields)&&$fields=$this->getFields(1);
         return $this->db_query->field($fields)->limit($limit)->select();
     }
     /**
@@ -124,5 +132,13 @@ class Model
     {
         $this->db_conn->free();
         $this->db_conn->close();
+    }
+    /**
+     * 关闭连接，释放资源
+     */
+    function __destruct()
+    {
+        $this->resetConn();
+        unset($this->db_conn,$this->db_query);
     }
 }

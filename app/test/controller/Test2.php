@@ -9,8 +9,10 @@ class Test2
     function index(){
         try{
        dump(posix_getcwd(),posix_getpid());
-       $a=1;
-       var_export($a,1);
+       $a="dd://ddd";
+      dump( var_export($a,1));
+    echo 41|8;
+      echo 2^2;
         }catch(\Exception $e){
             throw $e;
         }
