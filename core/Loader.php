@@ -20,10 +20,6 @@ class Loader
         $request = Request();
     }
 
-    public function reg($name)
-    {
-        return spl_autoload_register($name);
-    }
 /**
  * 类不存在时自动加载
  * @param string $name
@@ -79,7 +75,10 @@ class Loader
                                         __CLASS__,'appshutdown'
         ]);
     }
-
+/**
+ * 获取模块
+ * @return boolean|\core\unknown|array|\core\string[]|\core\unknown[]
+ */
     public static function get_module()
     {
         $module = Module::getname();
@@ -92,21 +91,26 @@ class Loader
         if (error_reporting() && $errno) {
             throw $exception;
         }
-        // echo 'type1';
-        // var_dump($errstr);
     }
-
+ /**
+  * 处理异常
+  * @param  $e
+  * @throws $e
+  */
     public static function appexception($e)
     {
         $trace=$e->getTrace();
          throw $e;
     }
-
+  /**
+   * 获取记录致使异常
+   */
     public static function appshutdown()
     {
-        if (! is_null(error_get_last())){
+        if (! is_null($geterr=error_get_last())){
           //  $exe
-            var_dump(error_get_last());
+            static::logFile(implode(' ',$geterr));
+            var_dump($geterr);
         }
     }
 
@@ -157,6 +161,11 @@ class Loader
         global $__global;
         $__global[$name]=$var;
     }
+    /**
+     * 获取运行记录
+     * @param string $name
+     * @return NULL|unknown|mixed
+     */
     public static function logGet($name='')
     {
        global $__global;
@@ -166,6 +175,9 @@ class Loader
           self::logTrace();
         return !empty($name)?$__global[$name]:$__global;
     }
+   /**
+    * 记录运行信息
+    */
     public static function logTrace()
     {
         global $__global;
@@ -185,7 +197,11 @@ class Loader
         
         return strtolower(trim(preg_replace("/[A-Z]/", "_\\0", $name), "_"));
     }
-    public static function logFile($str)
+    /**
+     * 异常写入日志文件
+     * @param string $str
+     */
+    public static function logFile($str='')
     {
         $timezone=date_default_timezone_get();
         date_default_timezone_set("Etc/GMT-8");
@@ -198,7 +214,12 @@ class Loader
         }
         date_default_timezone_set($timezone);
     }
-    public static function checkPath($filename)
+    /**
+     * 检查路径，不存在尝试创建
+     * @param string $filename
+     * @return boolean
+     */
+    public static function checkPath($filename='')
     {
            $paths=explode(DS,pathinfo($filename,PATHINFO_DIRNAME)); 
             $Path = '';

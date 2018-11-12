@@ -86,6 +86,46 @@ class Session
             unset($_SESSION[$prefix]);
     }
     /**
+     * 删除
+     */
+    public static function delete($name,$prefix=null)
+    {
+        self::init();
+        $prefix=is_null($prefix)?self::$prefix:$prefix;
+        if(empty($name)&&empty($prefix))
+            return false;
+        if(empty($name)&&!empty($prefix)){
+            unset($_SESSION[$prefix]);
+            return true;
+        }else{
+            if(is_array($name)){
+                foreach($name as $v)
+                 static::delete($v,$prefix); 
+            }
+            if(empty($prefix)){
+                if(strpos($name,'.')!==false){
+                    list($name1,$name2)=explode('.',$name);
+                    unset($_SESSION[$name1][$name2]);
+                      return true;
+                }else{
+                    unset($_SESSION[$name]);
+                    return true;
+                }
+            }else{
+                if(strpos($name,'.')!==false){
+                    list($name1,$name2)=explode('.',$name);
+                    unset($_SESSION[$prefix][$name1][$name2]);
+                    return true;
+                }else{
+                    unset($_SESSION[$prefix][$name]);
+                    return true;
+                }
+            }
+                         
+        }
+        return false;
+    }
+    /**
      * 设置session
      * @param string $name
      * @param string $value
