@@ -67,4 +67,13 @@ class Controller
     </script>";
         return $str;
     }
+    /**
+     * 验证器
+     * @param array $data
+     * @param array $rule
+     */
+    public function validate($data=[],$rule=[])
+    {
+        return true;
+    }
 }

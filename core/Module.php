@@ -60,7 +60,7 @@ class Module
     {
         $parse = parse_url($url);
         $params = [];
-        $paths = array_filter(explode("/", $parse['path']));
+        isset($parse['path'])&&$paths = array_filter(explode("/", $parse['path']));
        
         if (isset($paths[0])) {
             $module = $paths[0];

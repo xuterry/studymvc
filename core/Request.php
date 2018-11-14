@@ -66,6 +66,7 @@ class Request implements ArrayAccess, IteratorAggregate
         $this->data['serverip'] = $_SERVER['SERVER_ADDR'];
         $this->data['get'] = $_GET;
         $this->data['post'] = $_POST;
+        isset($_FILES)&&$this->data['file']=$_FILES;
         $this->data['domain'] = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'];
         $this->urlPath = $this->urlPath();
         $this->setParmas();
@@ -192,6 +193,13 @@ class Request implements ArrayAccess, IteratorAggregate
 
     function __call($name, $param)
     {
+       if(isset($this->data[$name])){
+           $name2=current($param);
+           if(isset($this->data[$name][$name2]))
+              return   $this->data[$name][$name2];
+           else 
+             return null;
+       }
         throw new \Exception(__CLASS__ . '::' . $name . ' not exsit');
     }
 
