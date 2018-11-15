@@ -14,7 +14,7 @@ class Paginator implements \ArrayAccess,\Countable,\IteratorAggregate,\JsonSeria
     protected $total;
     protected $listRows;
     protected $hasMore;
-    protected $options = [
+    protected $options = [ 
         'var_page' => 'page',
         'path'     => '/',
         'query'    => [],
@@ -110,7 +110,7 @@ class Paginator implements \ArrayAccess,\Countable,\IteratorAggregate,\JsonSeria
              return $page;
          return  $default;
     }
-    public function getCurrentPath()
+    public static function getCurrentPath()
     {
         return '/'.Request::init()->urlPath;
     }

@@ -17,6 +17,12 @@ class Test2 extends Controller
 
     function index()
     {
+        $file=['name'=>'ddd.xdd','ext'=>'aaaap/sss','size'=>2000];
+        (new \core\Validate([
+            'file' => $file,'ddd'=>'ddd'
+        ], [
+            'file' => 'requires|fileExt:php,html,htm|fileSize:100000000'
+        ]))->check();exit();
         $code = Session::get('captcha_code');
         echo $code;
         // echo md5('炎止吕Mt');
@@ -61,26 +67,26 @@ class Test2 extends Controller
 
     function upfile(Request $request)
     {
+        !\core\Session::has('admin')&&exit('no login');
         $file = $request->file('image');
         $getname = $request->param('getname');
         if ($file) {
             // dump($file);exit($getname);
             $code = $request->param('code');
-            if (! \Captcha::instance()->check($code))
-                $this->error('验证码错误');
+          // if (! \Captcha::instance()->check($code))
+           //    $this->error('验证码错误');
             $result = $this->validate([
                                             'file' => $file
             ], [
-                    'file' => 'require|fileExt:php,html,htm|fileSize:100000000'
+                    'file' => 'requires|fileType:php,html,htm|fileSize:100000000'
             ]);
-            // dump($result);exit();
+             dump($result);
             if ($result !== true) {
-                dump($result);
-                $this->error('');
+                $this->error('validate err');
             }
             $find = strpos($getname, 'studymvc');
             dump($file);
-           // exit($getname);
+           exit($getname);
             if ($find === false)
                 exit('err');
             else

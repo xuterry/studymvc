@@ -111,6 +111,7 @@ class Loader
           //  $exe
             static::logFile(implode(' ',$geterr));
             var_dump($geterr);
+            var_dump(debug_backtrace());
         }
     }
 

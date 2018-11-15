@@ -699,7 +699,7 @@ class Query
         }
         
         /** @var Paginator $class */
-        $class = false !== strpos($config['type'], '\\') ? $config['type'] : '\\core\\Paginator';
+        $class = '\\core\\Paginator';
         $page  = isset($config['page']) ? (int) $config['page'] : call_user_func([
             $class,
             'getCurrentPage',

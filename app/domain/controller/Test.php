@@ -9,6 +9,7 @@ use core\Session;
 use core\Db;
 use core\Paginator;
 use core\Collection;
+use core\Model;
 /**
 /xtw
 2018
@@ -19,24 +20,36 @@ class Test extends Controller
     {
         echo '__construct<br>';
     }
-     function index($n){
+     function index($n=''){
        // echo 'hello kitty'.$a;
       // $req=new Request();
       // $req->abc();
       //cookie
-    // var_dump(phpinfo());exit();
+     //var_dump(phpinfo());exit();
       echo $n;
      $a=true;
      echo $a?:3;
-      $conn=Db::connect();
+     $config=\core\Config::get('db_connect',APP_PATH.DS.'huobi'.DS.'config.php');
+   //  dump($config);exit();
+    // $conn=Db::connect($config);
        $count=['a'=>'a','dd','a'=>['a','b']];
       echo sizeof($count);
       //var_dump(count($conn));exit();
-   //   $db=new Db();
-     $rs=$conn->query(' SELECT * FROM `think_data` WHERE `id` > 1 limit 30');
-    $rs=Collection::make($rs);
-    $page=new Paginator($rs,5,1,count($rs));
-    // var_dump($page);exit();
+      $db=new Db();
+   $config['table']='btcusdt';
+   dump($config);
+     $user =new Model($config);
+     $list=$user->paginator(20);
+     //dump($list);
+     foreach($list as $user){
+         echo $user['id'].' '.$user['dbkey'].' '.date('Y-m-d H:i:s',substr($user['dbtime'],0,10)).'<br>';
+     }
+     $this->assign('list',$list);return $this->display("{\$list->render()}");exit();
+     $rs=$user->fetchAll();
+ //    $rs=$conn->query(' SELECT * FROM `think_data` WHERE `id` > 1 limit 30');
+    //$rs=Collection::make($rs);
+   // $page=new Paginator($rs,5,1,count($rs));
+  //  dump($page);exit('d');
     //  $conn->free();
  //  $conn->abc();
       $getfiled=$conn->getFields('think_data');

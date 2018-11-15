@@ -9,22 +9,27 @@ class Controller
 {
     //视图
     protected $view;
+    protected $is_init=0;   
     function __construct()
     {
-        $this->view=new View(Config::get('template'),Config::get('view_replace_str'));
-        //var_dump($this);
-      // exit();
+    }
+    protected function initView()
+    {
+        $this->is_init||($this->view=new View(Config::get('template'),Config::get('view_replace_str')))&&$this->is_init=1;
     }
     protected function assign($name,$value)
     {
+        $this->initView();
         return $this->view->assign($name,$value);
     }
     protected function display($content='',$var=[],$rep=[],$conf=[])
     {
+        $this->initView();
         return $this->view->display($content,$var,$rep,$conf);
     }
     protected function fetch($tpl='',$var=[],$rep=[],$conf=[])
-    {
+    {       
+        $this->initView();   
         return $this->view->fetch($tpl,$var,$rep,$conf);
     }
     /**
@@ -35,6 +40,7 @@ class Controller
      */
     protected function config($name,$value=null)
     {
+        $this->init();
         return $this->view->config($name,$value);
     }
     protected function success($msg = '', $url = null, $data = '', $wait = 5, array $header = [])
@@ -74,6 +80,6 @@ class Controller
      */
     public function validate($data=[],$rule=[])
     {
-        return true;
+        return (new Validate($data,$rule))->check();
     }
 }

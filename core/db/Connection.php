@@ -99,6 +99,7 @@ abstract class Connection
     public function __construct($config = [])
     {
         $this->config = array_merge($this->config, $config);
+        
     }
 
     /**
@@ -177,7 +178,7 @@ abstract class Connection
 
     public function connect($config = [], $linkNum = 0, $autoConnection = false)
     {
-        if (! isset($this->links[$linkNum])) {
+         if (! isset($this->links[$linkNum])) {
             $config = empty($config) ? $this->config : $config;
             $params = isset($config['params']) && is_array($config['params']) ? ($config['params'] + $this->params) : $this->params;
             $this->attrCase = $params[PDO::ATTR_CASE];

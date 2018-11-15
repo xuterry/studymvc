@@ -41,7 +41,7 @@ class Model
             $this->db_options=Config::get('database');
             $this->db_options['table']=$options;
         }else{
-        $this->db_options=empty($options)?Config::get('database'):array_merge($this->db_options,$options);
+        $this->db_options=array_merge(Config::get('database'),$options);
         }
         if(empty($this->db_table))
         $this->db_table=isset($this->db_options['table'])?$this->db_options['table']:'';
@@ -57,9 +57,10 @@ class Model
     /**
      * 根据id删除操作
      */
-    public function delete($id)
+    public function delete($id=0,$primary='')
     {
-      $primary=$this->getFields(2);
+      $id=intval($id);
+      empty($primary)&&$primary=$this->getFields(2);
       if(empty($primary))
           throw new \Exception('not primary key');
         $rs=$this->db_query->where($primary,'=',$id)->delete();
@@ -80,7 +81,7 @@ class Model
      */
     protected  function getFields($type=0)
     {
-        $fields=$this->db_conn->getFields(Config::get('database')['prefix'].$this->db_table);
+        $fields=$this->db_conn->getFields($this->db_options['prefix'].$this->db_table);
         if($type==1)
             return array_keys($fields);
         elseif($type==2){
@@ -91,7 +92,7 @@ class Model
             }
             return null;
         }
-        return $this->db_conn->getFields(Config::get('database')['prefix'].$this->db_table);
+        return $this->db_conn->getFields($this->db_options['prefix'].$this->db_table);
     }
     /**
      * 获取记录
@@ -114,6 +115,20 @@ class Model
         $this->db_query=$this->db_conn->name($this->db_table);
     }
     /**
+     * 保存数据
+     */
+    public function save($data=[],$id=0)
+    {
+        
+    }
+    /**
+     * 插入新数据
+     */
+    public function insert($data=[])
+    {
+        $this->db_query->insertAll($data);
+    }
+    /**
      * 重新配置数据库连接
      * @param array $configs
      */
@@ -124,6 +139,13 @@ class Model
             return;
         $this->resetConn();
         $this->db_conn=Db::connect($this->db_options);
+    }
+    /**
+     * 分页
+     */
+    public function paginator($page_num=10)
+    {
+        return $this->db_query->paginate($page_num);
     }
     /**
      * 关闭连接，释放资源

@@ -12,18 +12,24 @@ namespace core;
 class Config
 {
    private static $configs;
-   public static function init()
+   private static $base_file=APP_PATH.DS.'config.php';
+   private static $instance;
+   public static function init($file)
    {
-       self::$configs=include(APP_PATH.DS.'config.php');
+       $name=md5($file);
+       if(!isset(self::$instance[$name])){
+       self::$configs=include($file);
+       }
    }
     public static function debug()
     {
         if(self::get('debug'))
             return 1;
     }
-    public static function get($name)
+    public static function get($name,$file='')
     {
-        self::init();
+        $file=empty($file)?self::$base_file:$file;
+        self::init($file);
         if(strpos($name,".")>0)
             list($name,$type)=explode(".",$name);
         if(array_key_exists($name, self::$configs))

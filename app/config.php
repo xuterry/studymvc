@@ -90,5 +90,9 @@ return [
         'prefix'          => 'think_'
         
     ],
+    'paginate'=>[
+        'list_rows'=>10,
+        'var_page'  => 'page',
+        ],
     
 ];
