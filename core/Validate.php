@@ -116,6 +116,8 @@ class Validate
         unset($data['_value']);
         foreach($data as $key=>$val){
             if(strpos($key,'type')!==false){
+                if(empty($val))
+                    return false;
                 if(strpos($value,',')!==false)
                     $values=explode(',', $value);
                 else 

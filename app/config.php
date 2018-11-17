@@ -12,7 +12,11 @@ return [
             'id'=>'\d+',
             'year'=>'\d{4}',
             'month'=>'\d{2}',
+            'all'=>'(.+)'
         ],
+        '[api]'=>[
+            'detail/[:all]'=>['index/api/detail',['method'=>'get']]
+            ],
         '[hello]'     => [
             ':id'   => ['index/hello', ['method' => 'get'], ['id' => '\d+']],
             ':name' => ['index/hello', ['method' => 'post']],

@@ -1,5 +1,6 @@
 <?php
 namespace app\test\controller;
+use http\Curl;
 /**
 /xtw
 2018
@@ -7,6 +8,7 @@ namespace app\test\controller;
 class Test2
 {
     function index(){
+        dump(Curl::get('http://t.cctvlian.cn/api/detail?exchange=huobi'));exit();
         try{
        dump(posix_getcwd(),posix_getpid());
        $a="dd://ddd";
