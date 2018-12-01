@@ -107,25 +107,31 @@ class Module
             foreach ($route as $getmethod => $val) {
                 if ($getmethod == $method) {
                     foreach ($val as $v) {
-                        
                         $checkurl=$url;
                         if(strpos($v[0],'http://')!==false||strpos($v[0],'https://')!==false)
                             $checkurl=self::$domain.'/'.$url;
-                      //  echo $checkurl;
+                        //echo $checkurl;
                         $parttern = "/" . str_replace("/", "(\/)*", $v[0]) . "/";
-                       // echo $parttern
+                        //echo $parttern;
                         if (preg_match($parttern, $checkurl, $match)) {
-                           // var_dump($v,$parttern,$checkurl,$match);
+                         //  dump($v,$parttern,$checkurl,$match);
                             unset($match[0]);
                             foreach ($match as $k0 => $v0) {
                                 if (empty($v0) || strpos($v0, ".") === 0 || $v0 == '/')
                                     unset($match[$k0]);
                             }
                             $v[1]=str_replace(self::$domain,'',$v[1]);
-                           // var_dump($url,$v[2],$match,$v[1]);
+                         // dump($url,$v[2],$match,$v[1]);
                             $params=[];
-                            if(sizeof($v[2])==sizeof($match))
-                            $params = array_combine($v[2], $match);                            
+                            if(sizeof($v[2])==sizeof($match)){              
+                                  $params = array_combine((array)$v[2], $match); 
+                                  if(array_key_exists('path', $params)){
+                                      $v[1].='/'.$params['path'];
+                                      if(strpos($v[1],'?')!==false)
+                                          list($v[1],$req)=explode("?",$v[1]);
+                                      unset($params['path']);
+                                  }
+                            }
                             if (strpos($v[1], "/") === 0) {
                                 $paths = explode("/", substr($v[1], 1));
                                 $module = $paths[0];

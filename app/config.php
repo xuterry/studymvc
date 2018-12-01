@@ -12,13 +12,22 @@ return [
             'id'=>'\d+',
             'year'=>'\d{4}',
             'month'=>'\d{2}',
-            'all'=>'(.+)'
+            'all'=>'.+',
+            'path'=>'.+',//保持全路径
         ],
         '[api]'=>[
-            'detail/[:all]'=>['index/api/detail',['method'=>'get']]
+            'detail/[:all]'=>['index/api/detail',['method'=>'get']],
+            'file'=>['index/api/file',['method'=>'post']],
+            'getinfo/[:path]'=>['index/api/getinfo',['method'=>'get']],
+            'auth/[:path]'=>['index/api/auth',['method'=>'get']],
+            
+            'getbalance/[:path]'=>['index/api/getbalance',['method'=>'get']],
+            'trade'=>['index/api/trade',['method'=>'post']],        
+            'balances/[:path]'=>['index/api/balances',['method'=>'get']], 
             ],
+        'app/[:path]'=>['/index/app',['method'=>['get','post']]],
         '[hello]'     => [
-            ':id'   => ['index/hello', ['method' => 'get'], ['id' => '\d+']],
+            ':id'   => ['index/hello', ['method' => 'get'], ['id' => '\d{2}+']],
             ':name' => ['index/hello', ['method' => 'post']],
         ],
         'hello/[:name]'=>['index/hello',['method'=>'get','ext'=>'html']],

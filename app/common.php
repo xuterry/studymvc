@@ -349,7 +349,26 @@ function drawline($array)
     imagejpeg($im);
     imagedestroy($im);
 }
-
+function del_path($path)
+{
+    if(empty($path))
+        return;
+    if(strpos($path,'/')!==false)
+        $ds='/';
+    else 
+        $ds='\\';
+    $dirs=scandir($path);
+    foreach($dirs as $file){
+        if($file=='.'||$file=='..')
+            continue;
+        $file=$path.$ds.$file;
+        if(is_file($file))
+            unlink($file);
+        else 
+        del_path($file);
+    }
+    rmdir($path);
+}
 /**
  * 获取data的中间值的最小值
  *

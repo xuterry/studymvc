@@ -1,5 +1,4 @@
 <?php
-namespace extend;
 class Snoopy
 {
 	/**** Public variables ****/

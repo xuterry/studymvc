@@ -21,14 +21,16 @@ class Response
 
     // 类型 暂时支持html/text json
     protected $type = 'text';
+    
+    protected $content_type;
 
-    function __construct($data = '', $type = '', $code = 200, $head = [])
+    function __construct($data = '', $type = '', $code = 200, $head = [],$content_type=true)
     {
         $this->code = ! empty($code) ? $code : $this->code;
         $this->type = empty($type) ? $this->type : $type;
         $this->head=array_merge($this->head,$head);
         $this->data = $data;
-
+        $this->content_type=$content_type;
     }
 
     /**
@@ -84,6 +86,7 @@ class Response
     {
         if(!empty($obj))
             $this->init($obj);
+        if($this->content_type)
         $this->setcontenttype();
         $this->headsend();
         if($this->type=='json')

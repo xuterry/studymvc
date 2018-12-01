@@ -458,6 +458,7 @@ class Template
      */
     private function parseInclude(&$content,$basefile='')
     {
+        
         $regex = $this->getRegex('include');
         $func  = function ($template) use (&$func, &$regex, &$content,$basefile) {
             if (preg_match_all($regex, $template, $matches, PREG_SET_ORDER)) {
@@ -466,10 +467,20 @@ class Template
                     $file  = $array['file'];
                     $suffix=pathinfo($basefile,PATHINFO_EXTENSION);
                     if($suffix!=''){
-                        $basepath=explode(DS,pathinfo($basefile,PATHINFO_DIRNAME));
+                        $basepath=array_reverse(explode(DS,pathinfo($basefile,PATHINFO_DIRNAME)));
                         $filepaths=explode(DS,$file.'.'.$suffix);
-                        $thesame=array_intersect($basepath, $filepaths);
-                        $paths=array_merge($basepath,array_diff($filepaths,$thesame));
+                        $flag=0;
+                        $new_arr=[];
+                        foreach($basepath as $k=>$v){
+                            if(in_array($v,$filepaths)&&$flag==0)
+                                $flag=1;
+                            else{
+                            if($flag==1)
+                                $new_arr[]=$v;
+                            }
+                        }
+                        $basepath=array_reverse($new_arr);
+                        $paths=array_merge($basepath,$filepaths);
                         $file=implode(DS,$paths);
                     }
                     unset($array['file']);

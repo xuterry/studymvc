@@ -66,7 +66,7 @@ class Request implements ArrayAccess, IteratorAggregate
         $this->data['serverip'] = $_SERVER['SERVER_ADDR'];
         $this->data['get'] = $_GET;
         $this->data['post'] = $_POST;
-        !empty($_FILES['name'])&&$this->data['file']=$_FILES;
+        !empty($_FILES)&&$this->data['file']=$_FILES;
         $this->data['domain'] = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'];
         $this->urlPath = $this->urlPath();
         $this->setParmas();

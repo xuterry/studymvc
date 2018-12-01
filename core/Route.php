@@ -65,7 +65,12 @@ class Route
         else
              $name.=$is_or?'':'$';
         $method=empty($method)?'get':(is_array($method)?$method['method']:$method);
+        if(is_array($method)){
+            foreach($method as $v)
+                self::$rules[$v][]=[$name,$rule,$param];
+        }else
         self::$rules[$method][]=[$name,$rule,$param];
+        //dump(self::$rules);
     }
     /**
      * 注册路由规则

@@ -11,6 +11,7 @@ use http\Exchange;
 class Test extends Controller
 {
      function index($a=''){
+         return $this->fetch('');
          $symbol='btcusdt';
          $period='1day';
          $size=200;
