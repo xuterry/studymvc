@@ -65,8 +65,7 @@ class Smarty {
        // Config::$debug && Log::record('[ VIEW ] ' . $template . ' [ ' . var_export(array_keys($data), true) . ' ]', 'info');
 
         $default['__LIB__'] = '/static/plugs';
-        $default['__STATIC__'] ='/static';
-        $default['__UPLOAD__'] =  '/static/upload';
+        $default=array_merge($default,$this->config['tpl_replace_string']);
         // 赋值模板变量
         !empty($template) && $this->template->assign($data);
         echo str_replace(array_keys($default), array_values($default), $this->template->fetch($template));

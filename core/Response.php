@@ -42,9 +42,9 @@ class Response
      * @param array $head            
      * @return \core\Response
      */
-    public static function instance($data = '', $type = '', $code = 200, $head = [])
+    public static function instance($data = '', $type = '', $code = 200, $head = [],$content_type=true)
     {    
-        return (new self($data, $type , $code , $head ));
+        return (new self($data, $type , $code , $head ,$content_type));
     }
 
     /**

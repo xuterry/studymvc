@@ -135,7 +135,7 @@ class App
        $trace=$e->getTrace()[0];
        if(isset($trace['file']))
            $errmsg=$e->getMessage().' in '.$trace['file'].' line '.$trace['line'];
-       elseif(isset($trace['args'])){
+       elseif(isset($trace['args'])&&isset($trace['args'][2])&&isset($trace['args'][3])){
            $trace=$trace['args'];
            $errmsg=$e->getMessage().' in '.$trace[2].' line '.$trace[3];          
        }else

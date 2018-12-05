@@ -9,6 +9,7 @@ model类
 */
 class Model
 {
+    protected $data;
     /**
      * 数据库配置
      * @var array
@@ -40,8 +41,10 @@ class Model
         if(is_string($options)){
             $this->db_options=Config::get('database');
             $this->db_options['table']=$options;
-        }else{
-        $this->db_options=array_merge(Config::get('database'),$options);
+        }else{           
+            $this->db_options=array_merge(Config::get('database'),$this->db_options);
+            $this->db_options=array_merge($this->db_options,$options);
+          //  dump($this->db_options);exit();
         }
         if(empty($this->db_table))
         $this->db_table=isset($this->db_options['table'])?$this->db_options['table']:'';
@@ -102,7 +105,15 @@ class Model
     public function fetchAll($fields=[],$limit=30)
     {
         empty($fields)&&$fields=$this->getFields(1);
-        return $this->db_query->field($fields)->limit($limit)->select();
+        if(empty($limit))
+           return $this->db_query->field($fields)->select();
+        else
+           return $this->db_query->field($fields)->limit($limit)->select();
+    }
+    function __call($fun,$args)
+    {
+        $this->db_query=call_user_func_array([$this->db_query,$fun],$args);
+        return $this;
     }
     /**
      * 重新选择数据表
@@ -117,9 +128,14 @@ class Model
     /**
      * 保存数据
      */
-    public function save($data=[],$id=0)
+    public function save($data=[],$id=0,$primary='')
     {
-        
+        empty($primary)&&$primary=$this->getFields(2);
+        $this->db_query->where($primary,'=',$id)->update($data);
+    }
+    public function saveAll($data=[])
+    {
+        $this->db_query->update($data);
     }
     /**
      * 插入新数据
@@ -139,6 +155,16 @@ class Model
             return;
         $this->resetConn();
         $this->db_conn=Db::connect($this->db_options);
+    }
+    function __get($name)
+    {
+        if(isset($this->data[$name]))
+            return $this->data[$name];
+    }
+    function __set($name,$value)
+    {
+        if(isset($this->data[$name]))
+            $this->data[$name]=$value;
     }
     /**
      * 分页

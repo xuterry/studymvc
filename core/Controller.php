@@ -9,13 +9,14 @@ class Controller
 {
     //视图
     protected $view;
-    protected $is_init=0;   
+    protected $is_init=0;
+    protected $config=[];
     function __construct()
     {
     }
     protected function initView()
     {
-        $this->is_init||($this->view=new View(Config::get('template'),Config::get('view_replace_str')))&&$this->is_init=1;
+        $this->is_init||($this->view=new View(array_merge(Config::get('template'),$this->config),Config::get('view_replace_str')))&&$this->is_init=1;
     }
     protected function assign($name,$value)
     {
@@ -81,5 +82,10 @@ class Controller
     public function validate($data=[],$rule=[])
     {
         return (new Validate($data,$rule))->check();
+    }
+    protected function redirect($url)
+    {
+        !empty($url)&&header("Location:".$url);
+        exit;
     }
 }

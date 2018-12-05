@@ -99,7 +99,7 @@ abstract class Connection
     public function __construct($config = [])
     {
         $this->config = array_merge($this->config, $config);
-        
+        !empty($this->config['result_type'])&&$this->fetchType=$this->config['result_type'];       
     }
 
     /**
