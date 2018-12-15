@@ -29,21 +29,23 @@ class Test extends Controller
       echo $n;
      $a=true;
      echo $a?:3;
-     $config=\core\Config::get('db_connect',APP_PATH.DS.'huobi'.DS.'config.php');
+     $config=include(APP_PATH.DS.'admin'.DS.'config.php');
    //  dump($config);exit();
     // $conn=Db::connect($config);
        $count=['a'=>'a','dd','a'=>['a','b']];
       echo sizeof($count);
       //var_dump(count($conn));exit();
-      $db=new Db();
-   $config['table']='btcusdt';
-   dump($config);
+     // $db=new Db();
+   $config['table']='core_menu c';
+  // dump($config);
      $user =new Model($config);
-     $list=$user->paginator(20);
-     //dump($list);
-     foreach($list as $user){
-         echo $user['id'].' '.$user['dbkey'].' '.date('Y-m-d H:i:s',substr($user['dbtime'],0,10)).'<br>';
-     }
+     $r=$user->get(1);
+    // dump($r);exit();
+     $list=$user->where("type = 1")->paginator(2);
+    // dump($user->db_query,$list->render());exit;
+   //  foreach($list as $user){
+   //  //    echo $user['id'].' '.$user['dbkey'].' '.date('Y-m-d H:i:s',substr($user['dbtime'],0,10)).'<br>';
+   //  }
      $this->assign('list',$list);return $this->display("{\$list->render()}");exit();
      $rs=$user->fetchAll();
  //    $rs=$conn->query(' SELECT * FROM `think_data` WHERE `id` > 1 limit 30');

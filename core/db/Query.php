@@ -8,13 +8,16 @@ use core\db\Connection;
 use core\Cache;
 use core\Config;
 use core\Collection;
+use core\db\mysql\Builder;
 
 /**
  * 查询类,参考tp5
  */
 class Query
 {
-
+   /**
+    * @var Builder
+    */
     protected $builder;
 
     protected $connection;
@@ -47,7 +50,7 @@ class Query
     }
 
     function __call($method, $args)
-    {
+    {        
         if (strtolower(substr($method, 0, 5)) == 'getby') {
             $name = Loader::parseName(substr($name, 5));
             return $this->where([
@@ -58,8 +61,9 @@ class Query
             return $this->where([
                                     $name => $args[0]
             ])->value($args[1]);
-        } else
+        } else{
             throw new \Exception('method not exist ' . __CLASS__ . '->' . $method);
+        }
     }
 
     function getConnection()
@@ -195,7 +199,13 @@ class Query
     {
         return is_string($key) ? $key : md5($this->connection->getConfig('database') . '.' . $field . serialize($this->options) . serialize($this->bind));
     }
-
+    /**
+     * 得到某个列的数组
+     * @access public
+     * @param string $field 字段名 多个字段用逗号分隔
+     * @param string $key   索引
+     * @return array
+     */
     public function column($field, $key = '')
     {
         $result = false;
@@ -244,6 +254,13 @@ class Query
             $this->options = [];
         return $result;
     }
+    
+    /**
+     * COUNT查询
+     * @access public
+     * @param string $field 字段名
+     * @return integer|string
+     */
     public function count($field='*')
     {
         if(isset($this->options['group'])){
@@ -722,6 +739,7 @@ class Query
             $total   = null;
         } else {
             $results = $this->page($page, $listRows)->select();
+            
         }
         return $class::make($results, $listRows, $page, $total, $simple, $config);
     }
@@ -1302,7 +1320,6 @@ class Query
         if (!is_array(reset($dataSet))) {
             return false;
         }
-        
         // 生成SQL语句
         if (is_null($limit)) {
             $sql = $this->builder->insertAll($dataSet, $options, $replace);
@@ -1312,7 +1329,6 @@ class Query
                 $sql[] = $this->builder->insertAll($item, $options, $replace);
             }
         }
-        
         // 获取参数绑定
         $bind = $this->getBind();
         if ($options['fetch_sql']) {

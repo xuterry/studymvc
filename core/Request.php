@@ -122,7 +122,14 @@ class Request implements ArrayAccess, IteratorAggregate
         if (! empty($this->data['post'][$name]))
             return $this->filter($this->data['post'][$name]);
     }
-
+   public function cookie($name='')
+   {
+       $name = $this->parseName($name);
+      if(empty($name))
+          return $_COOKIE;
+       if (! empty($_COOKIE[$name]))
+           return $this->filter($_COOKIE[$name]);
+   }
     public function ip()
     {
         return $this->ip;

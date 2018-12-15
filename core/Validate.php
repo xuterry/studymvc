@@ -62,11 +62,18 @@ class Validate
         return $this;
     }
 
-    public function check()
+    public function check(&$error='')
     {
+        if(empty($this->check_table)){
+            $error='data empty';
+            return false;
+        }
         foreach($this->check_table as $rule=>$data){
-            if(!$this->match($rule,$data))
+            echo $rule;
+            if(!$this->match($rule,$data)){
+                $error=$this->msg;
                 return false;
+            }
         }
         return true;
     }
@@ -84,19 +91,21 @@ class Validate
         }
         else{
             is_string($data)&&$data=[$data];
+            $this->msg='no match';
             try{
             foreach($data as $v){
             if( !preg_match($rule,$v))
                 return false;
             }
             }catch(\Exception $e){
-                dump($e);
+                //dump($e);
             }
         }
         return false;
     }
     protected function requires($data)
     {
+        $this->msg='requires error';
         return count($data);
         return false;
     }
@@ -104,9 +113,12 @@ class Validate
     {
         $value=$data['_value'];
         unset($data['_value']);
+        $this->msg='filesize limit '; 
         foreach($data as $key=>$val){
-            if(strpos($key,'size')!==false)
+            if(strpos($key,'size')!==false){
+                $this->msg.=$value;
                 return $val<=$value;
+            }
         }
         return false;
     }
@@ -114,6 +126,7 @@ class Validate
     {
         $value=$data['_value'];
         unset($data['_value']);
+        $this->msg='filetype ';
         foreach($data as $key=>$val){
             if(strpos($key,'type')!==false){
                 if(empty($val))
@@ -123,6 +136,7 @@ class Validate
                 else 
                     $values[]=$value;
                 list($type1,$type2)=explode("/",$val);
+                $this->msg.=$value;
                 return in_array($type2,$values);
                 }
         }

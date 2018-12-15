@@ -417,6 +417,24 @@ abstract class Connection
         }
         return false;
     }
+    public function quote($str, $master = true)
+    {
+        $this->initConnect($master);
+        return $this->linkID ? $this->linkID->quote($str) : $str;
+    }
+    public function getError()
+    {
+        if ($this->PDOStatement) {
+            $error = $this->PDOStatement->errorInfo();
+            $error = $error[1] . ':' . $error[2];
+        } else {
+            $error = '';
+        }
+        if ('' != $this->queryStr) {
+            $error .= "\n [ SQL语句 ] : " . $this->getLastsql();
+        }
+        return $error;
+    }
     public function getLastSql()
     {
         return $this->getRealSql($this->queryStr, $this->bind);

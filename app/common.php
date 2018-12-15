@@ -71,7 +71,42 @@ function writefile($path = '', $name = '', $str, $mode = 1)
     fclose($fh);
     }
 }
-
+function unzip($src_file, $dest_dir=false, $create_zip_name_dir=false, $overwrite=true){
+    if (($zip = zip_open($src_file))==true){
+        if ($zip){
+            $splitter = ($create_zip_name_dir === true) ? "." : "/";
+            if($dest_dir === false){
+                $dest_dir = substr($src_file, 0, strrpos($src_file, $splitter))."/";
+            }
+            check_path($dest_dir);
+            while (($zip_entry = zip_read($zip))==true){
+                $pos_last_slash = strrpos(zip_entry_name($zip_entry), "/");
+                if ($pos_last_slash !== false){
+                    check_path($dest_dir.substr(zip_entry_name($zip_entry), 0, $pos_last_slash+1));
+                }
+                // 打开包
+                if (zip_entry_open($zip,$zip_entry,"r")){
+                    // 文件名保存在磁盘上
+                    $file_name = $dest_dir.zip_entry_name($zip_entry);
+                    if ($overwrite === true || $overwrite === false && !is_file($file_name)){
+                        // 读取压缩文件的内容
+                        $fstream = zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
+                        file_put_contents($file_name, $fstream);
+                        // 设置权限
+                        @chmod($file_name, 0777);
+                    }
+                    // 关闭入口
+                    zip_entry_close($zip_entry);
+                }
+            }
+            // 关闭压缩包
+            zip_close($zip);
+        }
+    }else{
+        return false;
+    }
+    return true;
+}
 /**
  * 将filename压缩成zip
  */
@@ -317,7 +352,10 @@ function get_date()
     // date_default_timezone_set("Etc/GMT-8");
     return date('Y-m-d H:i:s', time() + 8 * 3600);
 }
-
+function nowDate()
+{
+    return date("Y-m-d H:i:s");
+}
 // 画线
 function drawline($array)
 {
@@ -348,6 +386,41 @@ function drawline($array)
     header('Content-type:image/jpeg');
     imagejpeg($im);
     imagedestroy($im);
+}
+function check_path($filename='')
+{
+    if(strpos($filename,"/")!==false){
+        $ds='/';
+        $filename=str_replace("\\","/",$filename);
+    }
+    else{
+        $ds='\\';
+        $filename=str_replace("/","\\",$filename);       
+    }
+    if(strpos($filename,'.')!==false)
+    $paths=explode($ds,pathinfo($filename,PATHINFO_DIRNAME));
+    else 
+    $paths=explode($ds,$filename);      
+    $Path = '';
+    if (sizeof($paths) > 0) {
+        foreach ($paths as $v) {
+            $Path .= $v . $ds;
+            if (! is_dir($Path)){
+                mkdir($Path);
+                @chmod($Path, 0777);
+            }
+        }
+    }
+    return true;
+}
+function check_file($filename)
+{
+    if(strpos($filename,"/")!==false){
+        return str_replace(["\\","//"],["/","/"],$filename);
+    }
+    if(strpos($filename,"\\")!==false){
+        return str_replace(["/","\\\\"],["\\","\\"],$filename);
+    }
 }
 function del_path($path)
 {

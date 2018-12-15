@@ -76,12 +76,12 @@ class Session
      * 清除session
      * @param unknown $prefix
      */
-    public static function clear($prefix=null)
+    public static function clear($prefix=null,$true=false)
     {
         self::init();
         $prefix=is_null($prefix)?self::$prefix:$prefix;
-        if(is_null($prefix)){
-            unset($_SESSION);
+        if(is_null($prefix)||$true===true){
+            $_SESSION=[];
         }else 
             unset($_SESSION[$prefix]);
     }

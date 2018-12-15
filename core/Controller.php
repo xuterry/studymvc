@@ -79,9 +79,9 @@ class Controller
      * @param array $data
      * @param array $rule
      */
-    public function validate($data=[],$rule=[])
+    public function validate($data=[],$rule=[],&$error='')
     {
-        return (new Validate($data,$rule))->check();
+        return (new Validate($data,$rule))->check($error);
     }
     protected function redirect($url)
     {
