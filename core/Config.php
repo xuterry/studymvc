@@ -19,6 +19,7 @@ class Config
        $name=md5($file);
        if(!isset(self::$instance[$name])){
        self::$configs=include($file);
+       self::$instance[$name]=1;
        //echo $file;
        }
    }

@@ -35,7 +35,9 @@ abstract class Connection
     protected static $event = [];
 
     protected $builder;
-
+    
+    protected $transTimes = 0;
+    
     protected $params = [
                             PDO::ATTR_CASE => PDO::CASE_NATURAL,PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,PDO::ATTR_STRINGIFY_FETCHES => false,PDO::ATTR_EMULATE_PREPARES => false
     ];
@@ -378,7 +380,66 @@ abstract class Connection
         $this->numRows = count($item);
         return $item;
     }
+    protected function supportSavepoint()
+    {
+        return false;
+    }
+    protected function parseSavepoint($name)
+    {
+        return 'SAVEPOINT ' . $name;
+    }
+    protected function parseSavepointRollBack($name)
+    {
+        return 'ROLLBACK TO SAVEPOINT ' . $name;
+    }
+    public function startTrans()
+    {
+        $this->initConnect(true);
+        if (!$this->linkID) {
+            return false;
+        }
+        
+        ++$this->transTimes;
+        try {
+            if (1 == $this->transTimes) {
+                $this->linkID->beginTransaction();
+            } elseif ($this->transTimes > 1 && $this->supportSavepoint()) {
+                $this->linkID->exec(
+                    $this->parseSavepoint('trans' . $this->transTimes)
+                    );
+            }
+            
+        } catch (\PDOException $e) {
+            if ($this->isBreak($e)) {
+                return $this->close()->startTrans();
+            }
+            throw $e;
+        } catch (\Exception $e) {
+            if ($this->isBreak($e)) {
+                return $this->close()->startTrans();
+            }
+            throw $e;
+        } catch (\Error $e) {
+            if ($this->isBreak($e)) {
+                return $this->close()->startTrans();
+            }
+            throw $e;
+        }
+    }
     
+    public function rollback()
+    {
+        $this->initConnect(true);
+        
+        if (1 == $this->transTimes) {
+            $this->linkID->rollBack();
+        } elseif ($this->transTimes > 1 && $this->supportSavepoint()) {
+            $this->linkID->exec(
+                $this->parseSavepointRollBack('trans' . $this->transTimes)
+                );
+        }     
+        $this->transTimes = max(0, $this->transTimes - 1);
+    }
     public function close()
     {
         $this->linkID    = null;
@@ -387,7 +448,16 @@ abstract class Connection
         $this->links     = [];
         return $this;
     }
-    
+    public function commit()
+    {
+        $this->initConnect(true);
+        
+        if (1 == $this->transTimes) {
+            $this->linkID->commit();
+        }
+        
+        --$this->transTimes;
+    }
     protected function isBreak($e)
     {
         if (!$this->config['break_reconnect']) {
@@ -449,6 +519,7 @@ abstract class Connection
     {
         return $this->numRows;
     }
+    
     protected function initConnect($master = true)
     {
         if (!empty($this->config['deploy'])) {

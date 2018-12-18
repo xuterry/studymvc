@@ -205,7 +205,7 @@ class Loader
     public static function logFile($str='')
     {
         $timezone=date_default_timezone_get();
-        date_default_timezone_set("Etc/GMT-8");
+      //  date_default_timezone_set("Etc/GMT-8");
         $filename=LOG_PATH.DS.date("Ym").DS.date('d').'.log';
         self::checkPath($filename);
         $fh=fopen($filename,'a');

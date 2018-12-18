@@ -15,6 +15,7 @@ define('CACHE_PATH',TEMP_PATH);
 define('CORE_PATH',ROOT_PATH .'core');
 define('APP_PATH',ROOT_PATH.'app');
 define('LOG_PATH',ROOT_PATH.'runtime'.DS.'log');
+date_default_timezone_set("ETC/GMT-8");
 require CORE_PATH.DS.'Loader.php';
 core\Loader::logStart();
 //include(CORE_PATH.DS.'app.php');

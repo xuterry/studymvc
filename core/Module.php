@@ -6,7 +6,8 @@ namespace core;
  */
 class Module
 {
-
+    protected static $info=[];
+    protected static $route=[];
     protected static $domain;
     /**
      * 获取模型，控制器等信息
@@ -19,13 +20,17 @@ class Module
         $req = new Request();
         $url = $req->url();
         self::$domain=$req->domain();
-        $route = Route::get_route();
-        //var_dump($route);exit();
+        if(empty(self::$info)){
+        $route = empty(self::$route)?Route::get_route():self::$route;
         $infos = $route ? self::parserouter($url, $route, $req->method()) : self::parseurl($url);
         $infos=$infos==false?self::parseurl($url):$infos;
+        }else 
+            $infos=self::$info;
        //var_dump($infos);exit();
         if (is_null($infos))
             return false;
+        else 
+            self::$info=$infos;
         return empty($name) ? $infos : $infos[$name];
     }
 /**
@@ -166,5 +171,10 @@ class Module
         if(strpos($name,'.')!==false)
             list($name,$ext)=explode('.',$name);
         return $name;
+    }
+    public function __destruct()
+    {
+        self::$route=[];
+        self::$info=[];
     }
 }

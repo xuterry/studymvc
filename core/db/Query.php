@@ -113,7 +113,34 @@ class Query
         $this->table = $table;
         return $this;
     }
-
+    public function inc($field, $step = 1)
+    {
+        $fields = is_string($field) ? explode(',', $field) : $field;
+        foreach ($fields as $field) {
+            $this->data($field, ['inc', $step]);
+        }
+        return $this;
+    }
+    public function dec($field, $step = 1)
+    {
+        $fields = is_string($field) ? explode(',', $field) : $field;
+        foreach ($fields as $field) {
+            $this->data($field, ['dec', $step]);
+        }
+        return $this;
+    }
+    public function rollback()
+    {
+        $this->connection->rollback();
+    }
+    public function commit()
+    {
+        $this->connection->commit();
+    }
+    public function startTrans()
+    {
+        $this->connection->startTrans();
+    }
     public function getTable($name = '')
     {
         if ($name || empty($this->table)) {
@@ -157,10 +184,6 @@ class Query
         return $this->connection->getLastSql();
     }
 
-    public function commit()
-    {
-        $this->connection->commit();
-    }
 
     public function getConfig($name = '')
     {

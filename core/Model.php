@@ -21,6 +21,11 @@ class Model
      */
     protected $db_table='';
     /**
+     * 连接实例
+     */
+    static $conn_instance=[];
+    
+    /**
      *  数据库连接
      * @var Connection
      */
@@ -44,18 +49,27 @@ class Model
         }else{           
             $this->db_options=array_merge(Config::get('database'),$this->db_options);
             $this->db_options=array_merge($this->db_options,$options);
-          //  dump($this->db_options);exit();
         }
         if(empty($this->db_table))
         $this->db_table=isset($this->db_options['table'])?$this->db_options['table']:'';
         if(empty($this->db_table))
             throw new \Exception('empty db table');
         try{
-          $this->db_conn=Db::connect($this->db_options);
+          $key=md5(serialize($this->db_options));
+          if(isset(self::$conn_instance[$key]))   
+              $this->db_conn=self::$conn_instance[$key];
+          else{
+             $this->db_conn=Db::connect($this->db_options);
+             self::$conn_instance[$key]=$this->db_conn;
+          }
           $this->db_query=$this->db_conn->name($this->db_table);
         }catch(\Exception $e){
           throw $e;
         }
+    }
+    public function conn()
+    {
+        return $this->db_conn;
     }
     /**
      * 根据id删除操作
@@ -133,12 +147,13 @@ class Model
      * @param array $fields
      * @param array where
      */
-    public function fetchWhere($fields='*',$where=[])
+    public function fetchWhere($where=[],$fields='*',$limit='')
     {
         if(empty($where))
-            return $this->db_query->field($fields)->select();
+            return empty($limit)?$this->db_query->field($fields)->select():$this->db_query->field($fields)->limit($limit)->select();
         else
-            return $this->db_query->field($fields)->where($where)->select();
+            return empty($limit)?$this->db_query->field($fields)->where($where)->select():
+            $this->db_query->field($fields)->where($where)->limit($limit)->select();
     }
     /**
      * 获取排序结果
@@ -173,14 +188,20 @@ class Model
      * 获取query
      * @param  $fun
      * @param  $args
-     * @return Query;
+     * @return Query|mixed;
      */
     function __call($fun,$args)
     {
         if(method_exists($this->db_query, $fun)){
-        $this->db_query=call_user_func_array([$this->db_query,$fun],$args);
-        return $this;
+        $result=call_user_func_array([$this->db_query,$fun],$args);
+        if($result instanceof Query){
+            $this->db_query=$result;
+            return $this;
+        }else{
+            return $result;
         }
+        }
+        throw new  \Exception(__CLASS__.'::'.$fun.' method not exist');
     }
     /**
      * 重新选择数据表
@@ -258,9 +279,9 @@ class Model
     /**
      * 分页
      */
-    public function paginator($page_num=10,$simple=null)
+    public function paginator($page_num=10,$config=[],$simple=null)
     {
-        return $this->db_query->paginate($page_num,$simple);
+        return $this->db_query->paginate($page_num,$simple,$config);
     }
     /**
      * 关闭连接，释放资源
@@ -281,5 +302,6 @@ class Model
     {
         $this->resetConn();
         unset($this->db_conn,$this->db_query);
+        self::$conn_instance=[];
     }
 }
