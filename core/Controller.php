@@ -56,6 +56,8 @@ class Controller
     }
     protected function tpl($url,$wait)
     {
+        if(empty($url))
+            $url="javascript:history.go(-1)";
         $str="<p class='jump'>
         页面自动 <a id='href' href='".$url."'>跳转</a> 等待时间： <b id='wait'>".$wait."</b>
         </p>

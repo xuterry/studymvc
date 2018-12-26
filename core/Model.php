@@ -88,7 +88,7 @@ class Model
      */
     public function deleteWhere($where=[])
     {
-        if(empty($primary))
+        if(empty($where))
             throw new \Exception('not where condition');
         return $this->db_query->where($where)->delete();
     }
@@ -135,7 +135,7 @@ class Model
      * @param array $fields
      * @param number $limit
      */
-    public function fetchAll($fields='*',$limit=30)
+    public function fetchAll($fields='*',$limit=0)
     {
         if(empty($limit))
            return $this->db_query->field($fields)->select();

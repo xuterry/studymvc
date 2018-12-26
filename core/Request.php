@@ -24,6 +24,8 @@ class Request implements ArrayAccess, IteratorAggregate
 
     function offsetGet($offset)
     {
+        if(isset($this->data['params'][$offset]))
+            return $this->data['params'][$offset];
         return isset($this->data[$offset]) ? $this->data[$offset] : '';
     }
 

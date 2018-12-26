@@ -100,8 +100,6 @@ class App
             foreach(self::$params as $k=>$v)
                 $params[$k]=$v;
         }
-        Loader::log('params', $params);
-        //exit($params);
         if(is_callable(array($classname,$method))){
             $reflect=new \ReflectionMethod($classname,$method);
             $app=new $classname;

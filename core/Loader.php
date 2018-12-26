@@ -6,7 +6,7 @@ namespace core;
  */
 class Loader
 {
-
+    private static $loginfo=[];
     private static $extend_path = ROOT_PATH . 'extend';
 
     public static function auto()
@@ -17,7 +17,7 @@ class Loader
 
     public static function request()
     {
-        $request = Request();
+        return Request::instance();
     }
 
 /**
@@ -110,8 +110,8 @@ class Loader
         if (! is_null($geterr=error_get_last())){
           //  $exe
             static::logFile(implode(' ',$geterr));
-            var_dump($geterr);
-            var_dump(debug_backtrace());
+           var_dump($geterr);
+           var_dump(debug_backtrace());
         }
     }
 
@@ -146,21 +146,19 @@ class Loader
         }
     }
     /**
-     * 开始记录运行信息，设置全局变量$__global
+     * 开始记录运行信息，设置全局变量self::$loginfo
      */
     public static function logStart()
     {
-        global $__global;
-        $__global['start_time']=microtime(1);
-        $__global['start_mem']=memory_get_usage();
+        self::$loginfo['start_time']=microtime(1);
+        self::$loginfo['start_mem']=memory_get_usage();
     }
     /**
      * 记录运行信息
      */
     public static function log($name,$var)
     {
-        global $__global;
-        $__global[$name]=$var;
+        self::$loginfo[$name]=$var;
     }
     /**
      * 获取运行记录
@@ -169,22 +167,20 @@ class Loader
      */
     public static function logGet($name='')
     {
-       global $__global;
-       if(!empty($name)&&!isset($__global[$name]))
+       if(!empty($name)&&!isset(self::$loginfo[$name]))
            return null;
        // if($name=='trace')
           self::logTrace();
-        return !empty($name)?$__global[$name]:$__global;
+        return !empty($name)?self::$loginfo[$name]:self::$loginfo;
     }
    /**
     * 记录运行信息
     */
     public static function logTrace()
     {
-        global $__global;
-        $__global['trace'][ 'runtime ']=microtime(1)-$__global['start_time'];
-        $__global['trace'][' mem ']=get_round((memory_get_usage()-$__global['start_mem'])/1024);
-        $__global['trace']['includefile']=get_included_files();
+        self::$loginfo['trace'][ 'runtime ']=microtime(1)-self::$loginfo['start_time'];
+        self::$loginfo['trace'][' mem ']=get_round((memory_get_usage()-self::$loginfo['start_mem'])/1024);
+        self::$loginfo['trace']['includefile']=get_included_files();
     }
     public static function parseName($name, $type = 0, $ucfirst = true)
     {

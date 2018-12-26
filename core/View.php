@@ -81,7 +81,7 @@ class View
             $type=!empty($option['type'])?$option['type']:'think';
             $configs=isset($option['config'])?$option['config']:[];
         }
-       $class= is_file(CORE_PATH.DS.'view'.DS.$type.'.php')?'\\core\\view\\'.ucfirst($type):'\\core\\view\\'.strtolower($type).'\\'.ucfirst($type);
+       $class= is_file(CORE_PATH.DS.'view'.DS.ucfirst($type).'.php')?'\\core\\view\\'.ucfirst($type):'\\core\\view\\'.strtolower($type).'\\'.ucfirst($type);
   
      //  require ROOT_PATH.DS.'extend'.DS.'Smarty.class.php';
        $this->engine=new $class($configs);
