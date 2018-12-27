@@ -105,7 +105,7 @@ class Smarty {
         $depr = $this->config['view_depr'];
         if (0 !== strpos($template, '/')) {
             $template   = str_replace(['/', ':'], $depr, $template);
-            $controller=$module_info['controller'];
+            $controller=strtolower($module_info['controller']);
             if ($controller) {
                 if ('' == $template) {
                     // 如果模板文件名为空 按照默认规则定位
