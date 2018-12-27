@@ -1,0 +1,218 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="renderer" content="webkit|ie-comp|ie-stand">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<link href="/style/css/H-ui.min.css" rel="stylesheet" type="text/css" />
+<link href="/style/css/H-ui.admin.css" rel="stylesheet" type="text/css" />
+
+<link href="/style/lib/Hui-iconfont/1.0.7/iconfont.css" rel="stylesheet" type="text/css" />
+
+<title>系统参数</title>
+
+</head>
+
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe616;</i> 系统管理 <span class="c-gray en">&gt;</span> 退货地址设置 <a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+    <form name="form1" action="__moduleurl__/returns/set" class="form form-horizontal" method="post"   enctype="multipart/form-data" >
+        <div id="tab-system" class="HuiTab">
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-4"><span class="c-red">*</span>联系人：</label>
+                <div class="formControls col-xs-8 col-sm-6">
+                    <input type="text" name="name" value="{$list->name}" class="input-text">
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-4"><span class="c-red">*</span>联系电话：</label>
+                <div class="formControls col-xs-8 col-sm-6">
+                    <input type="text" name="tel" value="{$list->tel}" class="input-text">
+                </div>
+            </div>
+          <div class="row cl">
+               <label class="form-label col-xs-4 col-sm-4"><span class="c-red">*</span>收件地址：</label>       
+              <div class="formControls col-xs-8 col-sm-6">
+              <input type='hidden'  id='s_name' value='' name='s_name'> 
+              <input type='hidden'  id='c_name' value='' name='c_name'>
+             <input type='hidden'  id='q_name' value='' name='q_name'> 
+              
+              <select id="Select1" style="height:24px;" name="Select1" onchange="selectCity()" data-id="{$list->sheng}">
+
+                    <option value="" selected="true">省/直辖市</option>
+                </select>
+                <select id="Select2" style="height:24px;" name="Select2" onchange="selectCountry()" data-id="{$list->city}">
+                    <option value="" selected="true">请选择</option>
+                </select>
+                <select id="Select3" style="height:24px;" name="Select3" onchange="selectQuyu()"  data-id="{$list->quyu}">
+                    <option value="" selected="true">请选择</option>
+                </select>
+                </div>
+          </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-4"><span class="c-red">*</span>详细地址：</label>
+                <div class="formControls col-xs-8 col-sm-6">
+                    <input type="text" name="address" value="{$list->address}" class="input-text">
+                </div>
+            </div>
+
+        </div>
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-4">
+                <button class="btn btn-primary radius" type="submit" name="Submit"><i class="Hui-iconfont">&#xe632;</i> 保存</button>
+                <!-- <button class="btn btn-default radius" type="reset">&nbsp;&nbsp;清空&nbsp;&nbsp;</button> -->
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+<script type="text/javascript" src="/modpub/js/ajax.js"> </script>
+<script type="text/javascript" src="/style/lib/jquery/1.9.1/jquery.min.js"></script>
+{literal}
+<script type="text/javascript">
+function Init()
+            {
+
+                var   dropElement1=document.getElementById("Select1");
+                var   dropElement2=document.getElementById("Select2");
+                var   dropElement3=document.getElementById("Select3");
+                RemoveDropDownList(dropElement1);
+                RemoveDropDownList(dropElement2);
+                RemoveDropDownList(dropElement3);
+                var country = $('#Select1').attr('data-id');
+                 
+                
+                var url = "__moduleurl__/orderslist/ajax?GroupID=0";
+                ajax(url,function(text){
+                    var strs= new Array();
+                    strs=text.split("|");
+                    for(var i=0; i<strs.length-1;   i++)
+                    {
+                        var opp= new Array();
+                        opp=String(strs[i]).split(",");
+
+
+                        var   eOption=document.createElement("option");
+                        if(opp[1] == country){
+                          eOption.selected = true;
+                          
+                        }
+                        eOption.value=opp[1];
+                        eOption.text=opp[0];
+                        dropElement1.add(eOption);
+
+                    }
+                    selectCity();
+                });
+
+            }
+
+            function   selectCity()
+            {
+                var   dropElement1=document.getElementById("Select1");
+                var   dropElement2=document.getElementById("Select2");
+                var   dropElement3=document.getElementById("Select3");
+                var   name=dropElement1.value;
+
+                RemoveDropDownList(dropElement2);
+                RemoveDropDownList(dropElement3);
+                var city = $('#Select2').attr('data-id');
+                if(name!="")
+                {
+
+                    var url = "__moduleurl__/orderslist/ajax?GroupID="+name;
+
+                    ajax(url,function(text){
+                        var strs= new Array();
+                        strs=text.split("|");
+                        for(var i=0; i<strs.length-1;   i++)
+                        {
+                            var opp= new Array();
+                            opp=String(strs[i]).split(",");
+
+
+                            var   eOption=document.createElement("option");
+                            if(opp[1] == city){
+                              eOption.selected = true;
+                            }
+                            eOption.value=opp[1];
+                            eOption.text=opp[0];
+                            dropElement2.add(eOption);
+
+                        }
+                       selectCountry();
+                	   $("#s_name").val($("#Select1").find("option:selected").text());
+
+                    });
+                }
+            }
+
+            function   selectCountry()
+            {
+
+                var   dropElement1=document.getElementById("Select1");
+                var   dropElement2=document.getElementById("Select2");
+                var   dropElement3=document.getElementById("Select3");
+                var   name=dropElement2.value;
+
+
+                RemoveDropDownList(dropElement3);
+                var country = $('#Select3').attr('data-id');
+                if(name!="")
+                {
+
+                    var url = "__moduleurl__/orderslist/ajax?GroupID="+name;
+
+                    ajax(url,function(text){
+                        var strs= new Array();
+                        strs=text.split("|");
+                        for(var i=0; i<strs.length-1;   i++)
+                        {
+                            var opp= new Array();
+                            opp=String(strs[i]).split(",");
+
+
+                            var   eOption=document.createElement("option");
+                            if(country == opp[1]){
+                              eOption.selected = true;
+                            }
+                            eOption.value=opp[1];
+                            eOption.text=opp[0];
+                            dropElement3.add(eOption);
+
+                        }
+                 	   $("#c_name").val($("#Select2").find("option:selected").text());
+
+                    });
+                }
+                
+            }
+   function selectQuyu()
+   {
+	   $("#q_name").val($("#Select3").find("option:selected").text());
+   }
+            function   RemoveDropDownList(obj)
+            {
+                if(obj)
+                {
+                    var   len=obj.options.length;
+                    if(len>0)
+                    {
+                        //alert(len);
+                        for(var   i=len;i>=1;i--)
+                        {
+                            obj.remove(i);
+                        }
+                    }
+                }
+
+            }
+            Init();
+</script>
+{/literal}
+</body>
+</html>
