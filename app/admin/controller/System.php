@@ -6,7 +6,6 @@ use app\admin\model\Notice;
 
 class System extends Index
 {
-
     function __construct()
     {
         parent::__construct();
@@ -80,12 +79,18 @@ class System extends Index
         }
         if($uploadImg == ''){
             $this->error('图片上传位置不能为空！',$this->module_url."/system");
+        }else{
+            $path=check_file(PUBLIC_PATH.DS.$uploadImg);
+            if(!is_dir($path)){ // 如果文件不存在
+                mkdir($path); // 创建文件
+            }
         }
         if($upload_file == ''){
             $this->error('软件上传位置不能为空！',$this->module_url."/system");
         }else{
-            if(!is_dir($upload_file)){ // 如果文件不存在
-                mkdir($upload_file); // 创建文件
+            $path=check_file(PUBLIC_PATH.DS.$upload_file);
+            if(!is_dir($path)){ // 如果文件不存在
+                mkdir($path); // 创建文件
             }
         }
         if(substr($uploadImg,-1) != '/'){

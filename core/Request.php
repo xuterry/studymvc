@@ -19,6 +19,8 @@ class Request implements ArrayAccess, IteratorAggregate
 
     function offsetExists($offset)
     {
+        if(isset($this->data['params'][$offset]))
+            return true;
         return isset($this->data[$offset]);
     }
 

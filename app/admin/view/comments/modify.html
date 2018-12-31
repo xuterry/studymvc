@@ -310,6 +310,17 @@ textarea,
 .icon-meh:before { content: "\e780"; }
 
 .icon-smile:before { content: "\e783"; }
+.delimg0{
+	float:left;
+	height:50px;width:50px;
+	padding-bottom:8px;
+}
+.delimg{
+	height:10px;width:10px;
+	position:relative;
+	top:15px;left:0px;
+	z-index:2000;
+}
 </style>
 {/literal}
 <title>修改订单信息</title>
@@ -361,6 +372,8 @@ textarea,
             </div>
         </div>
     </div>
+   <div class="uploader-thum-container" id='showimg'>    ddd          
+    </div>
     <!--回复区域 end-->
 </div>
 {literal}
@@ -387,7 +400,67 @@ $(".plBtn").click( function () {
     alert('请填写完整!');
   }
  });
-
+function appendMask(content,src){
+    $("body").append(`
+        <div class="maskNew">
+            <div class="maskNewContent">
+                <a href="javascript:void(0);" class="closeA" onclick=closeMask1() ><img src="/images/icon1/gb.png"/></a>
+                <div class="maskTitle">提示</div>
+                <div style="text-align:center;margin-top:30px"><img src="/images/icon1/${src}.png"></div>
+                <div style="height: 50px;position: relative;top:20px;font-size: 22px;text-align: center;">
+                    ${content}
+                </div>
+                <div style="text-align:center;margin-top:30px">
+                    <button class="closeMask" onclick=closeMask1() >确认</button>
+                </div>
+            </div>
+        </div>
+    `)
+}
+function closeMask(file,id,m){	
+	var pid=$("[name=id]").val();
+    $.get("__moduleurl__/comments/delimg",{id:id,file:file,cid:pid,do:m},function(res){
+        if(res.data!="-1"){
+        	if(m=='del')
+            appendMask("删除成功","cg");
+            var count=$("[name=imageurl_len]").val();
+            if(count>1)
+              count=count-1;
+            $("[name=imageurl_len]").val(count);
+            var str='';
+            for(var i=0;i<res.data.length;i++)
+            	str+= " <div class='delimg0'><img src='/images/icon1/gb.png'  class='delimg' title='删除'  onclick=\"confirm('删除图片?','"+res.data[i].file+"','"+res.data[i].id+"','del')\"><img class='pimg' src='"+res.data[i].file+"' style='width: 50px;height: 50px;'></div>";
+           $("#showimg").html(str);
+        }else{
+        	if(m=='del')
+            appendMask("删除失败","ts");
+        }
+    },'json');
+    $(".maskNew").remove();
+}
+function closeMask1(){
+    $(".maskNew").remove();
+   // location.replace(location.href);
+}
+function confirm (content,url,id,m){
+    $("body").append(`
+        <div class="maskNew">
+            <div class="maskNewContent">
+                <a href="javascript:void(0);" class="closeA" onclick=closeMask1() ><img src="/images/icon1/gb.png"/></a>
+                <div class="maskTitle">删除</div>
+                <div style="text-align:center;margin-top:30px"><img src="/images/icon1/ts.png"></div>
+                <div style="height: 50px;position: relative;top:20px;font-size: 22px;text-align: center;">
+                    ${content}
+                </div>
+                <div style="text-align:center;margin-top:30px">
+                    <button class="closeMask" style="margin-right:20px" onclick=closeMask('${url}','${id}','${m}') >确认</button>
+                    <button class="closeMask" onclick=closeMask1() >取消</button>
+                </div>
+            </div>
+        </div>
+    `)
+}
+closeMask('',0,'');
 </script>
 {/literal}
 </body>

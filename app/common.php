@@ -442,6 +442,32 @@ function del_path($path)
     }
     rmdir($path);
 }
+function getPathFile($path,$ext='',&$return=[])
+{
+    if(empty($path))
+        return;
+        if(strpos($path,'/')!==false)
+            $ds='/';
+        else
+            $ds='\\';
+        $dirs=scandir($path);
+         foreach($dirs as $file){
+            if($file=='.'||$file=='..')
+            continue;
+            $file=check_file($path.$ds.$file);
+             if(is_file($file)){
+                      if(!empty($ext)){
+                          $type=pathinfo($file,PATHINFO_EXTENSION);
+                          if(strpos($ext,$type)!==false)
+                              $return[]=$file;
+                      }else 
+                          $return[]=$file;
+                  }
+                else
+               getPathFile($file,$ext,$return);
+         }
+         return $return;
+}
 /**
  * 获取data的中间值的最小值
  *

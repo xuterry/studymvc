@@ -58,6 +58,7 @@ class Sign extends Index
         $starttime = $request->param('starttime'); // 活动开始时间
         $endtime = $request->param('endtime'); // 活动结束时间
         $detail = addslashes(trim($request->param('detail'))); // 活动介绍
+        $detail = $this->trimContent($detail);      
         if ($image) {
             $image = preg_replace('/.*\//', '', $image);
         } else {
@@ -318,6 +319,7 @@ class Sign extends Index
         $starttime = $request->param('starttime'); // 活动开始时间
         $endtime = $request->param('endtime'); // 活动结束时间
         $detail = addslashes(trim($request->param('detail'))); // 活动介绍
+        $detail = $this->trimContent($detail); 
         
         if ($image) {
             $image = preg_replace('/.*\//', '', $image);

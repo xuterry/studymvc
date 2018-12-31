@@ -17,10 +17,10 @@ class Comments extends Index
         $ordtype = array(
                         '0' => '全部','GOOD' => '好评','NOTBAD' => '中评','BAD' => '差评'
         );
-        $otype = isset($_GET['otype']) && $_GET['otype'] !== '' ? $_GET['otype'] : false;
-        $status = isset($_GET['status']) && $_GET['status'] !== '' ? $_GET['status'] : false;
-        $ostatus = isset($_GET['ostatus']) && $_GET['ostatus'] !== '' ? $_GET['ostatus'] : false;
-        $sNo = isset($_GET['sNo']) && $_GET['sNo'] !== '' ? $_GET['sNo'] : false;
+        $otype = isset($request['otype']) && $request['otype'] !== '' ? $request['otype'] : false;
+        $status = isset($request['status']) && $request['status'] !== '' ? $request['status'] : false;
+        $ostatus = isset($request['ostatus']) && $request['ostatus'] !== '' ? $request['ostatus'] : false;
+        $sNo = isset($request['sNo']) && $request['sNo'] !== '' ? $request['sNo'] : false;
         $condition = ' 1=1';
         if ($otype) {
             $condition .= " and c.CommentType = '$otype' ";
@@ -106,7 +106,32 @@ class Comments extends Index
                                         '__moduleurl__' => $this->module_url
         ]);
     }
-
+    public function delimg(Request $request)
+    {
+        // 接收信息
+        $id = intval($request->param('id')); // 轮播图id
+        $cid=intval($request->get('cid'));
+        empty($cid)&&exit;
+        $file=$request->get('file');
+        $do=$request->get('do');
+        $filename=check_file(PUBLIC_PATH.DS.$file);
+        if($do=='del'){
+        if($this->getModel('CommentsImg')->delete($id,'id')){
+            if(is_file($filename)){
+                unlink($filename);
+            }
+        }
+        }
+        $files=$this->getModel('CommentsImg')->fetchWhere("comments_id ='".$cid."'","id,comments_url");
+        $data=[];
+        $path=pathinfo($file,PATHINFO_DIRNAME);
+        empty($path)&&$path=$this->getUploadImg();
+        if($files){
+            foreach($files as $v)
+                $data[]=['id'=>$v->id,'file'=>str_replace("//","/",$path.'/'.$v->comments_url)];
+        }
+        exit(json_encode(['data'=>$data]));
+    }
     public function modify(Request $request)
     {
         $request->method() == 'post' && $this->do_modify($request);

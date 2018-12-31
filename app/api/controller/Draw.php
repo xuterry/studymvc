@@ -10,9 +10,7 @@ class Draw extends Api
         parent::__construct();
     }
     public function getformid (Request $request)
-    {
-        
-        
+    {   
         $uid = addslashes(trim($request->param('userid')));
         $formid = addslashes(trim($request->param('from_id')));      
         $fromres = $this->getModel('UserFromid')->getCount("open_id = $uid","*");
@@ -29,8 +27,7 @@ class Draw extends Api
 
     public function ceshi (Request $request)
     {
-        
-        
+            
         // 现在时间的前一天
         $datetime = date('Y-m-d H:i:s', time() - 24 * 60 * 60);
         // 现在时间的前七天
@@ -39,7 +36,7 @@ class Draw extends Api
         $delres=$this->getModel('DrawUserFromid')->delete($datetime1,'lifetime');
         // 过去五分钟
         $oldtime = date('Y-m-d H:i:s', time() - 5 * 60 - 24 * 60 * 60);
-        $re01=$this->getModel('Draw')->where(['end_time'=>['>','=']])->fetchAll('*');
+        $re01=$this->getModel('Draw')->where("sign_time>='".$oldtime."' and sign_time < '".$datetime."'")->fetchAll('*');
         if (! empty($re01)) {
             foreach ($re01 as $key01 => $value01) {
                 $draw_id = $value01->id; // 活动ID
@@ -132,9 +129,7 @@ class Draw extends Api
 
     public function getdraw (Request $request)
     {
-        
-        
-        
+                
         $openid = trim($request->param('openid')); // 本人微信id
         $referee_openid = trim($request->param('referee_openid')); // 本人微信id
         $order_id = trim($request->param('order_id')); // 订单id
@@ -156,7 +151,7 @@ class Draw extends Api
         $sNo = $r_1[0]->sNo; // 订单号
         $arr['drawid'] = $r_1[0]->drawid; // 抽奖id
                                           // 根据抽奖id,查询抽奖活动id
-        $rr=$this->getModel('DrawUser')->where(['id'=>['=',$arr[drawid]]])->fetchAll('draw_id,role');
+        $rr=$this->getModel('DrawUser')->where(['id'=>['=',$arr['drawid']]])->fetchAll('draw_id,role');
         $arr['draw_id'] = $rr[0]->draw_id; // 抽奖活动id
         $role = $rr[0]->role; // 角色
                               
@@ -205,11 +200,11 @@ class Draw extends Api
                 $arr['draw_type'] = false;
             }
         }
-        $r_r=$this->getModel('ProductList')->where(['id'=>['=',$arr[p_id]]])->fetchAll('num');
+        $r_r=$this->getModel('ProductList')->where(['id'=>['=',$arr['p_id']]])->fetchAll('num');
         $arr['stock'] = $r_r[0]->num;
         /* 获取商品属性 */
         $commodityAttr = [];
-        $r_size=$this->getModel('Configure')->where(['pid'=>['=',$arr[p_id]]])->fetchAll('*');
+        $r_size=$this->getModel('Configure')->where(['pid'=>['=',$arr['p_id']]])->fetchAll('*');
         $array_price = [];
         $array_yprice = [];
         if ($r_size) {

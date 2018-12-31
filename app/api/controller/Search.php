@@ -3,31 +3,16 @@ namespace app\api\controller;
 use core\Request;
 class Search extends Api
 {
-
     function __construct()
     {
         parent::__construct();
     }
     public function index (Request $request)
     {
-             
-        // 查询系统参数
-        $r_1=$this->getModel('Config')->where(['id'=>['=','1']])->fetchAll('*');
-        if ($r_1) {
-            $uploadImg_domain = $r_1[0]->uploadImg_domain; // 图片上传域名
-            $uploadImg = $r_1[0]->uploadImg; // 图片上传位置
-            if (strpos($uploadImg, '../') === false) { // 判断字符串是否存在 ../
-                $img = $uploadImg_domain . $uploadImg; // 图片路径
-            } else { // 不存在
-                $img = $uploadImg_domain . substr($uploadImg, 2); // 图片路径
-            }
-        } else {
-            $img = '';
-        }
-        
+        $img=$this->getUploadImg(1)?:'';
         // 查询商品并分类显示返回JSON至小程序
         $r_c=$this->getModel('ProductClass')
-        ->where("recycle=0")       
+        ->where("recycle = 0")       
         ->where(['sid'=>['=','0']])->fetchOrder(['sort'=>'desc'],'cid,pname,img,bg');
         $twoList = [];
         $abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -74,28 +59,14 @@ class Search extends Api
         ));
         exit();
     }
-
     public function search (Request $request)
-    {
-            
+    {        
         $keyword = trim($request->param('keyword')); // 关键词
         $num = trim($request->param('num')); // '次数'
         $select = trim($request->param('select')); // 选中的方式 0 默认 1 销量 2价格
         $sort = trim($request->param('sort')); // 排序方式 1 asc 升序 0 desc 降序
                                                       // 查询系统参数
-        $r_1=$this->getModel('Config')->where(['id'=>['=','1']])->fetchAll('*');
-        if ($r_1) {
-            $uploadImg_domain = $r_1[0]->uploadImg_domain; // 图片上传域名
-            $uploadImg = $r_1[0]->uploadImg; // 图片上传位置
-            if (strpos($uploadImg, '../') === false) { // 判断字符串是否存在 ../
-                $img = $uploadImg_domain . $uploadImg; // 图片路径
-            } else { // 不存在
-                $img = $uploadImg_domain . substr($uploadImg, 2); // 图片路径
-            }
-        } else {
-            $img = '';
-        }
-        
+        $img=$this->getUploadImg(1)?:'';
         if ($select == 0) {
             $select = 'a.add_date';
         } elseif ($select == 1) {
@@ -107,16 +78,14 @@ class Search extends Api
             $sort = ' asc ';
         } else {
             $sort = ' desc ';
-        }
-        
+        }       
         // 查出所有产品分类
         $res=$this->getModel('ProductClass')->fetchAll('pname');
         if ($res) {
             foreach ($res as $key => $value) {
                 $res[] = $value->pname;
             }
-        }
-        
+        }       
         // 判断如果关键词是产品分类名称，如果是则查出该类里所有商品
         if (in_array($keyword, $res)) {
             $type = 0;
@@ -129,7 +98,7 @@ class Search extends Api
             $end = 10;
             $data=$this->getModel('ProductList')->alias('a')->join('configure c','a.id=c.pid','RIGHT')
             ->where(['a.product_class'=>['like',"%$cid%"],'a.status'=>['=','0']])
-            ->where("recycle=0")           
+            ->where("a.recycle=0")           
             ->order([$select=>$sort])
             ->fetchGroup('c.pid','a.id,product_title,a.volume,a.s_type,c.id as cid,c.yprice,c.img,c.name,c.color,min(c.price) as price',"$start,$end");
         } else { // 如果不是商品分类名称，则直接搜产品
@@ -137,7 +106,7 @@ class Search extends Api
             $keyword = addslashes($keyword);
             $data=$this->getModel('ProductList')->alias('a')->join('configure c','a.id=c.pid','RIGHT')
             ->where(['a.product_title'=>['like',"%$keyword%"],'a.status'=>['=','0']]) 
-            ->where("recycle=0")         
+            ->where("a.recycle=0")         
             ->order([$select=>$sort])->fetchGroup('c.pid','a.id,a.product_title,a.product_class,a.volume,a.s_type,c.id as cid,c.yprice,c.img,c.name,c.color,min(c.price) as price');
         }
         if (! empty($data)) {
@@ -168,9 +137,7 @@ class Search extends Api
     }
 
     public function listdetail (Request $request)
-    {
-        
-        
+    {           
         $id = trim($request->param('cid')); // '分类ID'
         $paegr = trim($request->param('page')); // '页面'
         $select = trim($request->param('select')); // 选中的方式 0 默认 1 销量 2价格
@@ -180,8 +147,7 @@ class Search extends Api
             $select = 'a.volume';
         } else {
             $select = 'price';
-        }
-        
+        }        
         $sort = trim($request->param('sort')); // 排序方式 1 asc 升序 0 desc 降序
         if ($sort) {
             $sort = ' asc ';
@@ -189,19 +155,7 @@ class Search extends Api
             $sort = ' desc ';
         }
         // 查询系统参数
-        $r_1=$this->getModel('Config')->where(['id'=>['=','1']])->fetchAll('*');
-        if ($r_1) {
-            $uploadImg_domain = $r_1[0]->uploadImg_domain; // 图片上传域名
-            $uploadImg = $r_1[0]->uploadImg; // 图片上传位置
-            if (strpos($uploadImg, '../') === false) { // 判断字符串是否存在 ../
-                $img = $uploadImg_domain . $uploadImg; // 图片路径
-            } else { // 不存在
-                $img = $uploadImg_domain . substr($uploadImg, 2); // 图片路径
-            }
-        } else {
-            $img = '';
-        }
-        
+        $img=$this->getUploadImg(1)?:'';
         if (! $paegr) {
             $paegr = 1;
         }
@@ -215,7 +169,7 @@ class Search extends Api
         
         $r=$this->getModel('ProductList')->alias('a')->join('configure c','a.id=c.pid','RIGHT')
         ->where(['a.product_class'=>['like',"%$id%"],'c.num'=>['>','0'],'a.status'=>['=','0']])
-        ->where("recycle=0")      
+        ->where("a.recycle=0")      
         ->order([$select=>$sort])
         ->fetchGroup('c.pid','a.id,a.product_title,volume,min(c.price) as price,c.yprice,c.img,c.name,c.color,c.size,a.s_type,c.id AS sizeid',"$start,$end");
         

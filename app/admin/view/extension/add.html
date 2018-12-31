@@ -1058,7 +1058,7 @@
                       if(type == 'nickname' || type == 'title' || type == 'marketprice' || type == 'productprice') {
 
                         d.size = obj.attr('size');
-
+                        d.text=obj.text();
                         d.color = obj.attr('color');
 
                       } else if(type == 'qr') {
@@ -1067,9 +1067,8 @@
 
                       } else if(type == 'img') {
 
-                        d.src = obj.attr('src');
-
-                      }
+                        d.src = obj.find('img').attr('src');
+                        }
 
                       data.push(d);
 

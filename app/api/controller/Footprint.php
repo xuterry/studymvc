@@ -13,14 +13,7 @@ class Footprint extends Api
     {           
         $openid = $request['openid']; // 微信id
                                     // 查询系统参数
-        $r_1=$this->getModel('Config')->where(['id'=>['=','1']])->fetchAll('*');
-        $uploadImg_domain = $r_1[0]->uploadImg_domain; // 图片上传域名
-        $uploadImg = $r_1[0]->uploadImg; // 图片上传位置
-        if (strpos($uploadImg, '../') === false) { // 判断字符串是否存在 ../
-            $img = $uploadImg_domain . $uploadImg; // 图片路径
-        } else { // 不存在
-            $img = $uploadImg_domain . substr($uploadImg, 2); // 图片路径
-        }
+       $img=$this->getUploadImg(1);
         // 根据微信id,查询用户id
         $r=$this->getModel('User')->where(['wx_id'=>['=',$openid]])->fetchAll('user_id');
         $user_id = $r[0]->user_id;
@@ -34,13 +27,17 @@ class Footprint extends Api
         $start_time_3 = date("Y-m-d H:i:s", mktime(0, 0, 0, date('m'), date('d') - 2, date('Y'))); // 前天开始时间
         $end_time_3 = date("Y-m-d H:i:s", mktime(0, 0, 0, date('m'), date('d') - 1, date('Y')) - 2); // 前天结束时间
                                                                                          // 根据用户id,查询今天足迹
-        $r_1=$this->getModel('UserFootprint')->where(['user_id'=>['=',$user_id],'add_time'=>['>',$start_time_1],'add_time'=>['<',$end_time_1]])->fetchAll('*');
+        $r_1=$this->getModel('UserFootprint')->where(['user_id'=>['=',$user_id],'add_time'=>['>',$start_time_1]])
+        ->where(['add_time'=>['<',$end_time_1]])->fetchAll('*');
         if ($r_1) {
             $time_1 = date('Y年m月d日', strtotime($r_1[0]->add_time));
             $res_1 = [];
             foreach ($r_1 as $k_1 => $v_1) {
                 $p_id = $v_1->p_id;
-                $rr_1=$this->getModel('ProductList')->alias('a')->join('configure c','a.id=c.pid','RIGHT')->where(['a.id'=>['=',$p_id]])->order(['c.pid'=>'asc'])->fetchGroup('c.pid "','a.id,a.product_title,a.volume,min(c.price) as price,c.yprice,c.img,c.id AS sizeid');
+                $rr_1=$this->getModel('ProductList')->alias('a')
+                ->join('configure c','a.id=c.pid','RIGHT')
+                ->where(['a.id'=>['=',$p_id]])
+                ->fetchGroup('c.pid','a.id,a.product_title,a.volume,min(c.price) as price,c.yprice,c.img,c.id AS sizeid');
                 if ($rr_1) {
                     foreach ($rr_1 as $key_1 => $value_1) {
                         $value_1->imgurl = $img . $value_1->img; // 拼图片路径
@@ -57,14 +54,18 @@ class Footprint extends Api
             $list_1 = '';
         }
         // 根据用户id,查询昨天足迹
-        $r_2=$this->getModel('UserFootprint')->where(['user_id'=>['=',$user_id],'add_time'=>['>',$start_time_2],'add_time'=>['<',$end_time_2]])->fetchAll('*');
+        $r_2=$this->getModel('UserFootprint')->where(['user_id'=>['=',$user_id],'add_time'=>['>',$start_time_2]])
+        ->where(['add_time'=>['<',$end_time_2]])->fetchAll('*');
         if ($r_2) {
             $res_2 = [];
             $time_2 = date('Y年m月d日', strtotime($r_2[0]->add_time));
             foreach ($r_2 as $k_2 => $v_2) {
                 $p_id = $v_2->p_id;
                 
-                $rr_2=$this->getModel('ProductList')->alias('a')->join('configure c','a.id=c.pid','RIGHT')->where(['a.id'=>['=',$p_id],'a.num'=>['>','0']])->order(['c.pid'=>'asc'])->fetchGroup('c.pid "','a.id,a.product_title,a.volume,min(c.price) as price,c.yprice,c.img,c.id AS sizeid');
+                $rr_2=$this->getModel('ProductList')->alias('a')
+                ->join('configure c','a.id=c.pid','RIGHT')
+                ->where(['a.id'=>['=',$p_id],'a.num'=>['>','0']])
+                ->fetchGroup('c.pid','a.id,a.product_title,a.volume,min(c.price) as price,c.yprice,c.img,c.id AS sizeid');
                 if ($rr_2) {
                     foreach ($rr_2 as $key_2 => $value_2) {
                         $value_2->imgurl = $img . $value_2->img; // 拼图片路径
@@ -80,13 +81,16 @@ class Footprint extends Api
             $list_2 = '';
         }
         // 根据用户id,查询前天足迹
-        $r_3=$this->getModel('UserFootprint')->where(['user_id'=>['=',$user_id],'add_time'=>['>',$start_time_3],'add_time'=>['<',$end_time_3]])->fetchAll('*');
+        $r_3=$this->getModel('UserFootprint')->where(['user_id'=>['=',$user_id],'add_time'=>['>',$start_time_3]])
+        ->where(['add_time'=>['<',$end_time_3]])->fetchAll('*');
         if ($r_3) {
             $res_3 = [];
             $time_3 = date('Y年m月d日', strtotime($r_3[0]->add_time));
             foreach ($r_3 as $k_3 => $v_3) {
                 $p_id = $v_3->p_id;
-                $rr_3=$this->getModel('ProductList')->alias('a')->join('configure c','a.id=c.pid','RIGHT')->where(['a.id'=>['=',$p_id],'a.num'=>['>','0']])->order(['c.pid'=>'asc'])->fetchGroup('c.pid "','a.id,a.product_title,a.volume,min(c.price) as price,c.yprice,c.img,c.id AS sizeid');
+                $rr_3=$this->getModel('ProductList')->alias('a')
+                ->join('configure c','a.id=c.pid','RIGHT')
+                ->where(['a.id'=>['=',$p_id],'a.num'=>['>','0']])->fetchGroup('c.pid','a.id,a.product_title,a.volume,min(c.price) as price,c.yprice,c.img,c.id AS sizeid');
                 if ($rr_3) {
                     foreach ($rr_3 as $key_3 => $value_3) {
                         $value_3->imgurl = $img . $value_3->img; // 拼图片路径
@@ -108,7 +112,8 @@ class Footprint extends Api
             $time_4 = '更早时间';
             foreach ($r_4 as $k_4 => $v_4) {
                 $p_id = $v_4->p_id;
-                $rr_4=$this->getModel('ProductList')->alias('a')->join('configure c','a.id=c.pid','RIGHT')->where(['a.id'=>['=',$p_id],'a.num'=>['>','0']])->order(['c.pid'=>'asc'])->fetchGroup('c.pid "','a.id,a.product_title,a.volume,min(c.price) as price,c.yprice,c.img,c.id AS sizeid');
+                $rr_4=$this->getModel('ProductList')->alias('a')->join('configure c','a.id=c.pid','RIGHT')
+                ->where(['a.id'=>['=',$p_id],'a.num'=>['>','0']])->fetchGroup('c.pid','a.id,a.product_title,a.volume,min(c.price) as price,c.yprice,c.img,c.id AS sizeid');
                 if ($rr_4) {
                     foreach ($rr_4 as $key_4 => $value_4) {
                         $value_4->imgurl = $img . $value_4->img; // 拼图片路径
@@ -141,8 +146,7 @@ class Footprint extends Api
     }
 
     public function alldel (Request $request)
-    {
-           
+    {    
         $openid = trim($request->param('openid')); // 微信id
         $r_user=$this->getModel('User')->where(['wx_id'=>['=',$openid]])->fetchAll('user_id');
         $userid = $r_user['0']->user_id;

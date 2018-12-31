@@ -69,7 +69,7 @@ class Validate
             return false;
         }
         foreach($this->check_table as $rule=>$data){
-            echo $rule;
+            //echo $rule;
             if(!$this->match($rule,$data)){
                 $error=$this->msg;
                 return false;

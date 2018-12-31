@@ -47,7 +47,7 @@ class Index extends Controller
         if (isset($this->model[$key]))
             return $this->model[$key];
         else {
-            $model = "\\app\\admin\\model\\" . $name;
+            $model = "\\app\\".$this->module."\\model\\" . $name;
             return $this->model[$key] = new $model($this->db_config);
         }
     }
@@ -339,7 +339,7 @@ class Index extends Controller
         if ($type == 'update') {
             $arrays = explode(",", $str);
             foreach ($arrays as $v) {
-                list ($key, $value) = explode("=", $v);
+                list ($key, $value) = explode(" =", $v);
                 $return[trim($key)] = trim(str_replace("'", '', $value));
             }
         }
@@ -414,8 +414,8 @@ class Index extends Controller
         if ($poststr != "") {
             if (isset($poststr['file']))
                 curl_setopt($curl, CURLOPT_SAFE_UPLOAD, true);
-            curl_setopt($url, CURLOPT_POST, 1);
-            curl_setopt($url, CURLOPT_POSTFIELDS, $poststr);
+            curl_setopt($curl, CURLOPT_POST, 1);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $poststr);
         }
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);

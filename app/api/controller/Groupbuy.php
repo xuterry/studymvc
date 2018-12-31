@@ -109,7 +109,7 @@ as z left join lkt_configure as c on z.attr_id=c.id) as w left join lkt_product_
         if (! empty($res)) {
             $groupid = $res[0]->group_id;
             $ressum=$this->getModel('Order')->alias('o')->join('order_details d','o.sNo=d.r_sNo','left')
-            ->where(['o.pid'=>['=',$groupid],'o.status'=>['>','0']])->order(['m.p_id'=>'asc'])
+            ->where(['o.pid'=>['=',$groupid],'o.status'=>['>','0']])
             ->fetchGroup('m.p_id','sum(m.num) as sum,o.num,d.p_id');
             
             foreach ($res as $k => $v) {
@@ -168,7 +168,7 @@ as m left join lkt_configure as c on m.attr_id=c.id';
         }
         $guigeres->content = preg_replace('/(<img.+?src=")(.*?)/', "$1$newa$2", $content);      
         // $guigeres -> content = preg_replace('/(<img.+?src=")(.*?)/','$1//xiaochengxu.laiketui.com$2', $guigeres -> content);       
-        $imgres=$this->getModel('ProductImg')->where(['product_id'=>['=','']])->fetchAll('product_url');       
+        $imgres=$this->getModel('ProductImg')->where(['product_id'=>['=',$gid]])->fetchAll('product_url');       
         $imgarr = [];      
         if (! empty($imgres)) {
             foreach ($imgres as $k => $v) {
@@ -181,7 +181,7 @@ as m left join lkt_configure as c on m.attr_id=c.id';
             $imgarr[0] = $guigeres->image;
             $guigeres->images = $imgarr;
         }
-        $contres=$this->getModel('GroupBuy')->where(['status'=>['=','']])->fetchAll('man_num,time_over,endtime,productnum');
+        $contres=$this->getModel('GroupBuy')->where(['status'=>['=',$group_id]])->fetchAll('man_num,time_over,endtime,productnum');
         list ($contres) = $contres;
         $guigeres->man_num = $contres->man_num;       
         $commodityAttr = [];
@@ -253,7 +253,7 @@ as m left join lkt_configure as c on m.attr_id=c.id';
             }
         }       
         // 查询此商品评价记录
-        $r_c=$this->getModel('Comments')->alias('a')->join('user m','a.uid=m.user_id','LEFT')->fetchWhere(['a.pid'=>['=',$gid],'m.wx_id'=>['','<']],'a.id,a.add_time,a.content,a.CommentType,a.size,m.user_name,m.headimgurl',"2");
+        $r_c=$this->getModel('Comments')->alias('a')->join('user m','a.uid=m.user_id','LEFT')->fetchWhere(['a.pid'=>['=',$gid],'m.wx_id'=>['<>','']],'a.id,a.add_time,a.content,a.CommentType,a.size,m.user_name,m.headimgurl',"2");
         $arr = [];
         if (! empty($r_c)) {
             foreach ($r_c as $key => $value) {
@@ -275,7 +275,7 @@ as m left join lkt_configure as c on m.attr_id=c.id';
                     $va['images'] = $array_c;
                 }
                 // -------------2018-07-27 修改
-                $ad_res=$this->getModel('ReplyComments')->where(['cid'=>['=',$comments_id],'uid'=>['=','admin']])->fetchAll('content');
+                $ad_res=$this->getModel('ReplyComments')->where(['cid'=>['=',$comments_id]])->fetchAll('content');
                 if ($ad_res) {
                     $reply_admin = $ad_res[0]->content;
                 } else {
@@ -470,7 +470,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
         }
         $attrres->image = $img . $attrres->image;
         
-        $moneyres=$this->getModel('User')->where(['wx_id'=>['=','']])->fetchAll('user_id,user_name,money');
+        $moneyres=$this->getModel('User')->where(['wx_id'=>['=',$userid]])->fetchAll('user_id,user_name,money');
         
         if (! empty($moneyres)) {
             list ($moneyres) = $moneyres;
@@ -535,7 +535,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
         
         $time_over = date('Y-m-d H:i:s', $time_over[0] * 3600 + $time_over[1] * 60 + time());
         
-        $pro_size=$this->getModel('Configure')->fetchWhere(['id'=>['=',$sizeid]],'configure');
+        $pro_size=$this->getModel('Configure')->fetchWhere(['id'=>['=',$sizeid]],'name,color,size');
         
         $pro_size = $pro_size[0]->name . $pro_size[0]->color . $pro_size[0]->size;
         
@@ -549,7 +549,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
             exit();
         }
         
-        $user_id=$this->getModel('User')->fetchWhere(['wx_id'=>['=',$uid]],'user');
+        $user_id=$this->getModel('User')->fetchWhere(['wx_id'=>['=',$uid]],'user_id');
         
         $uid = $user_id[0]->user_id;
         
@@ -571,7 +571,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
             ));
             exit();
         }    
-        $idres=$this->getModel('Order')->fetchWhere(['sNo'=>['=',$ordernum]],'order');
+        $idres=$this->getModel('Order')->fetchWhere(['sNo'=>['=',$ordernum]],'id');
         
         if (! empty($idres))
             $idres = $idres[0]->id;
@@ -589,7 +589,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
             exit();
         }
     }
-    public function can_group (Request $request)
+    public function cangroup (Request $request)
     {      
         $oid = addslashes(trim($request->param('oid')));
         $groupid = addslashes(trim($request->param('groupid')));
@@ -606,26 +606,31 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
             $img = $uploadImg_domain . substr($uploadImg, 2); // 图片路径
         }
         
-        $groupmsg=$this->getModel('GroupOpen')->fetchWhere(['ptcode'=>['=',$oid]],'group_open');
+        $groupmsg=$this->getModel('GroupOpen')->fetchWhere(['ptcode'=>['=',$oid]],'uid,ptgoods_id,endtime,ptstatus,ptnumber');
         // if(!empty($groupmsg)) $isself = $groupmsg[0] -> uid;
         
-        $userid=$this->getModel('User')->fetchWhere(['wx_id'=>['=',$user_id]],'user');
+        $userid=$this->getModel('User')->fetchWhere(['wx_id'=>['=',$user_id]],'user_id');
         $userid = $userid[0]->user_id;
-        $isrecd=$this->getModel('Order')->fetchWhere(['ptcode'=>['=',$oid],'pid'=>['=',$groupid],'user_id'=>['=',$userid]],'order');
+        $isrecd=$this->getModel('Order')->fetchWhere(['ptcode'=>['=',$oid],'pid'=>['=',$groupid],'user_id'=>['=',$userid]],'count(*) as recd');
         $recd = $isrecd[0]->recd;
         
         if ($recd > 0) {
-            $res=$this->getModel('GroupOpen')->alias('k')->join('order_details d','k.sNo=d.r_sNo','left')->join('order p','k.ptcode=p.ptcode','right')->fetchWhere(['p.ptcode'=>['=',$oid],'p.user_id'=>['=',$userid]],'k.*,d.p_name,d.p_price,d.sid k.ptgoods_id,k.ptnumber,k.addtime as cantime,k.endtime,k.ptstatus,p.name,p.num,p.sNo,p.sheng,p.shi,p.xian,p.address,p.mobile,p.status');
+            $res=$this->getModel('GroupOpen')->alias('k')
+            ->join('order p','k.ptcode=p.ptcode','right')
+            ->join('order_details d','p.sNo=d.r_sNo','left')          
+            ->fetchWhere(['p.ptcode'=>['=',$oid],'p.user_id'=>['=',$userid]],'k.*,d.p_name,d.p_price,d.sid,k.ptgoods_id,k.ptnumber,k.addtime as cantime,k.endtime,k.ptstatus,p.name,p.num,p.sNo,p.sheng,p.shi,p.xian,p.address,p.mobile,p.status');
             
             if ($res) {
                 // var_dump($res);
                 $ptgoods_id = $res[0]->ptgoods_id;
-                $aa=$this->getModel('GroupProduct')->fetchWhere(['group_id'=>['=',$groupid],'product_id'=>['=',$ptgoods_id]],'group_product');
+                $aa=$this->getModel('GroupProduct')->fetchWhere(['group_id'=>['=',$groupid],'product_id'=>['=',$ptgoods_id]],'min(group_price) as gprice');
                 $res = $res[0];
-                $image=$this->getModel('Configure')->fetchWhere(['id'=>['=',$res->sid]],'configure');
+                $image=$this->getModel('Configure')->fetchWhere(['id'=>['=',$res->sid]],'img,yprice');
+                if($image){
                 $res->img = $img . $image[0]->img;
                 $res->yprice = $image[0]->yprice;
                 $res->p_price = $aa[0]->gprice;
+                }
             } else {
                 $res = (object) array();
             }
@@ -643,7 +648,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
         }
         $groupmember=$this->getModel('Order')->alias('i')->join('user u','i.user_id=u.user_id','left')->where(['i.ptcode'=>['=',$oid],'i.pid'=>['=',$groupid]])->fetchOrder(['i.id'=>'asc'],'i.user_id,u.headimgurl');
         
-        $man_num=$this->getModel('GroupBuy')->fetchWhere(['status'=>['=',$groupid]],'group_buy');
+        $man_num=$this->getModel('GroupBuy')->fetchWhere(['status'=>['=',$groupid]],'productnum');
         if (isset($man_num[0])) {
             $res->productnum = $man_num[0]->productnum;
             $res->groupmember = $groupmember;
@@ -776,7 +781,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
         $ordstatus = $status == 1 ? 9 : 0;
         
         $creattime = date('Y-m-d H:i:s');
-        $pro_size=$this->getModel('Configure')->fetchWhere(['id'=>['=',$sizeid]],'configure');
+        $pro_size=$this->getModel('Configure')->fetchWhere(['id'=>['=',$sizeid]],'name,color,size');
         $pro_size = $pro_size[0]->name . $pro_size[0]->color . $pro_size[0]->size;
         $selres=$this->getModel('GroupOpen')->where(['group_id'=>['=',$groupid],'ptcode'=>['=',$oid]])->fetchAll('ptnumber,ptstatus,endtime');
         if (! empty($selres)) {
@@ -785,7 +790,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
             $endtime = strtotime($selres[0]->endtime);
         }
         $ordernum = 'PT' . mt_rand(10000, 99999) . date('Ymd') . substr(time(), 5);
-        $user_id=$this->getModel('User')->fetchWhere(['wx_id'=>['=',$uid]],'user');
+        $user_id=$this->getModel('User')->fetchWhere(['wx_id'=>['=',$uid]],'user_id');
         $uid = $user_id[0]->user_id;
         
         if ($endtime >= time()) {
@@ -1043,7 +1048,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
             $address['address'] = $res->address;
             $res->address = $address;
             if ($res->express_id > 0) {
-                $express=$this->getModel('Express')->fetchWhere(['id'=>['=',$res->express_id]],'express');
+                $express=$this->getModel('Express')->fetchWhere(['id'=>['=',$res->express_id]],'kuaidi_name');
                 $express = $express[0]->kuaidi_name;
             } else {
                 $express = '';
@@ -1051,7 +1056,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
             $res->express = $express;
             $res->img = $img . $res->img;
             
-            $goodsattr=$this->getModel('Configure')->fetchWhere(['id'=>['=',$res->sid]],'configure');
+            $goodsattr=$this->getModel('Configure')->fetchWhere(['id'=>['=',$res->sid]],'name,color,size');
             $goodsattr = $goodsattr[0];
             $guige = array();
             $guige['pname'] = '规格';
@@ -1603,7 +1608,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
         
         
         $trade_no = addslashes(trim($request->param('trade_no')));
-        $gmsg=$this->getModel('Order')->fetchWhere(['trade_no'=>['=',$trade_no]],'order');
+        $gmsg=$this->getModel('Order')->fetchWhere(['trade_no'=>['=',$trade_no]],'id,sNo,ptcode');
         
         if ($gmsg) {
             echo json_encode(array(

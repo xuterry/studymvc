@@ -49,8 +49,7 @@ class Extension extends Index
     }
 
     private function do_add($request)
-    {
-        
+    {     
         // 接收数据
         $title = trim($request->param('title')); // 名称
         $type = trim($request->param('type')); // 海报类型
@@ -58,10 +57,9 @@ class Extension extends Index
         $isdefault = trim($request->param('isdefault')); // 是否默认
         $bg = trim($request->param('bg')); // 背景图片
         $waittext = trim($request->param('waittext')); // 等待语
-        $data = trim($request->param('data')); // 排序的数据
+        $data = str_replace([$this->getUploadImg()," ","\\n","\\r","\\t"],[''],$request->param('data')); // 排序的数据
         $color = trim($request->param('color')); // 颜色
-        $img = $request->param('img');
-        
+        $img = $request->param('img');       
         if (empty($title) || empty($keyword) || empty($waittext)) {
             $this->error('信息未填写完整,请重新添加！', '');
         }
@@ -77,10 +75,8 @@ class Extension extends Index
         }
         return;
     }
-
     public function del(Request $request)
-    {
-        
+    {     
         // 接收信息
         $id = intval($request->param('id')); // 轮播图id
                                              // 根据轮播图id，删除轮播图信息
@@ -88,11 +84,9 @@ class Extension extends Index
         echo 1;
         return;
     }
-
     public function modify(Request $request)
     {
-        $request->method() == 'post' && $this->do_modify($request);
-        
+        $request->method() == 'post' && $this->do_modify($request);     
         // 接收信息
         $id = intval($request->param("id")); // 推广图id
                                              // 根据推广图id，查询推广图信息
@@ -104,20 +98,17 @@ class Extension extends Index
         }
         // $data = json_decode($data);
         // 查询配置表信息
-        $this->assign("uploadImg",Session::get('uploadImg')?:$this->getConfig()[0]->uploadImg);
-        
+        $this->assign("uploadImg",Session::get('uploadImg')?:$this->getConfig()[0]->uploadImg);      
         $this->assign("res", $res);
         $this->assign('id', $id);
         $this->assign('data', $data);
-        
         return $this->fetch('', [], [
                                         '__moduleurl__' => $this->module_url
         ]);
     }
 
     private function do_modify($request)
-    {
-        
+    {        
         // 接收数据
         $title = trim($request->param('title')); // 名称
         $type = trim($request->param('type')); // 海报类型
@@ -125,7 +116,7 @@ class Extension extends Index
         $isdefault = trim($request->param('isdefault')); // 是否默认
         $bg = trim($request->param('bg')); // 背景图片
         $waittext = trim($request->param('waittext')); // 等待语
-        $data = trim($request->param('data')); // 排序的数据
+        $data = str_replace(["//",$this->getUploadImg()," ","\\n","\\r","\\t"],['/',''],$request->param('data')); // 排序的数据
         $color = trim($request->param('color')); // 颜色
         $img = $request->param('img');
         $oldimg=$request->param('oldimg');
@@ -136,13 +127,10 @@ class Extension extends Index
         // 添加数据
         if ($isdefault) {
             $r=$this->getModel('Extension')->saveAll(['isdefault'=>0],['type'=>['=',$type]]);
-        }
-        
+        }      
         $id = intval($request->param("id")); // 推广图id
-                                             // 更新数据表
-        
-        $r=$this->getModel('Extension')->saveAll(['image'=>$img,'name'=>$title,'type'=>$type,'keyword'=>$keyword,'isdefault'=>$isdefault,'bg'=>$bg,'waittext'=>$waittext,'data'=>$data,'color'=>$color,'add_date'=>nowDate()],['id'=>['=',$id]]);
-        
+                                             // 更新数据表        
+        $r=$this->getModel('Extension')->saveAll(['image'=>$img,'name'=>$title,'type'=>$type,'keyword'=>$keyword,'isdefault'=>$isdefault,'bg'=>$bg,'waittext'=>$waittext,'data'=>$data,'color'=>$color,'add_date'=>nowDate()],['id'=>['=',$id]]);     
         if ($r == false) {
             $this->error('未知原因，修改失败！', $this->module_url . "/extension");
         } else {
@@ -150,7 +138,6 @@ class Extension extends Index
         }
         return;
     }
-
     public function uploadImg(Request $request)
     {
         $request->method() == 'post' && $this->do_uploadImg($request);
@@ -176,14 +163,12 @@ class Extension extends Index
         $page=$request->get('page');
         $pagesize=24;
         $uploadImg=Session::get('uploadImg')?:$this->getConfig()[0]->uploadImg;
-        $path=check_file(PUBLIC_PATH.DS.$uploadImg.DS);
-        $imgs=scandir($path);
+        $path=check_file(PUBLIC_PATH.DS.$uploadImg);
         $items=[];
-        foreach($imgs as $v){
-            if($v=='..'||$v=='.'||is_dir($path.$v))
-                continue;
-            $filename=$path.$v;
+        $imgs=getPathFile($path);
+        foreach($imgs as $filename){
             $getext=pathinfo($filename,PATHINFO_EXTENSION);
+            $v=str_replace($path,'',$filename);
             if($getext=='jpg'||$getext=='jpeg'||$getext=='gif'||$getext=='png'){             
                   $size=round(filesize($filename)/1204,2);
                   $createdate=date('Y-m-d H:i:s',filemtime($filename));
@@ -206,8 +191,7 @@ class Extension extends Index
     }
 
     private function do_uploadImg($request)
-    {
-        
+    {       
         // 查询配置表信息
         $r_1 = $this->getConfig();
         $uploadImg_domain = $r_1[0]->uploadImg_domain; // 图片上传域名
@@ -234,18 +218,15 @@ class Extension extends Index
         $size = getimagesize($filename);
         $info = array(
                     'name' => $file['name'],'ext' => $type,'filename' => $imgURL_name,'attachment' => $imgURL_name,'url' => $img . $imgURL_name,'is_image' => 1,'filesize' => $size
-        );
-        
+        );       
         $info['width'] = $size[0];
         $info['height'] = $size[1];
         die(json_encode($info));
     }
-
     function changePassword(Request $request)
     {
         $this->redirect($this->module_url . '/index/changePassword');
     }
-
     function maskContent(Request $request)
     {
         $this->redirect($this->module_url . '/index/maskContent');

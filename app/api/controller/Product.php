@@ -15,11 +15,8 @@ class Product extends Api
 
         $this->execute();
     }
-
-    
     private function do_product($request)
-    {
-            
+    {           
         $m = addslashes(trim($request->param('m')));
         if($m == 'index'){
             $this->index();
@@ -72,7 +69,8 @@ class Product extends Api
         // 获取产品id
         $id = trim($request->param('pro_id'));
         $openid = trim($request->param('openid'));
-
+        if(empty($id)||$id=='undefined')
+            exit(json_encode(['stauts'=>'0']));
         // 根据微信id,查询用户id
         // 获取类别值id，用于区分是抽奖和其他
         $type1 = $request->param('type1');
@@ -226,7 +224,7 @@ class Product extends Api
             $product['pro_number'] = $res['0']->id;
             $product['company'] = '件';
             $product['cat_name'] = $pname;
-            $product['brand'] = '来客推';
+            $product['brand'] = '自营';
             $product['img_arr'] = $img_arr;
             $product['choujiangid'] = $choujiangid? '':$choujiangid;
             $product['volume'] = $res['0']->volume;
@@ -626,7 +624,10 @@ class Product extends Api
 
         foreach ($typeArr as $key => $value) {
             // 联合查询返回购物信息
-            $r_c=$this->getModel('Cart')->alias('a')->join('product_list m','a.Goods_id=m.id','LEFT')->fetchWhere(['c.num'=>['>','0'],'m.status'=>['=','0'],'a.id'=>['=',$value]],'a.Goods_num,a.Goods_id,a.id,m.product_title,m.volume,c.price,c.attribute,c.img,c.yprice,m.freight,m.product_class');
+            $r_c=$this->getModel('Cart')->alias('a')
+            ->join('product_list m','a.Goods_id=m.id','LEFT')
+            ->join("configure c","a.Size_id = c.id","left")
+            ->fetchWhere(['c.num'=>['>','0'],'m.status'=>['=','0'],'a.id'=>['=',$value]],'a.Goods_num,a.Goods_id,a.id,m.product_title,m.volume,c.price,c.attribute,c.img,c.yprice,m.freight,m.product_class');
             if($r_c){
                 $product = (array)$r_c['0']; // 转数组
                 $attribute = unserialize($product['attribute']);
@@ -684,7 +685,7 @@ class Product extends Api
                 $region = $r_subtraction[0]->region; // 不包邮地区
                 $region_list = explode(',',$region);
                 if($man_money <= $zong){ // 当商品总价满足 包邮限制
-                    $r_address=$this->getModel('AdminCgGroup')->where(['GroupID'=>['=','']])->fetchAll('G_CName');
+                    $r_address=$this->getModel('AdminCgGroup')->where(['GroupID'=>['=',$address['sheng']]])->fetchAll('G_CName');
                     if($r_address){
                         $G_CName = $r_address[0]->G_CName;
                         if(in_array($G_CName, $region_list)){
@@ -1202,7 +1203,10 @@ class Product extends Api
             $typeArr=explode(',',$typestr);
             foreach ($typeArr as $key => $value) {
                 // 联合查询返回购物信息
-                $r_c=$this->getModel('Cart')->alias('a')->join('product_list m','a.Goods_id=m.id','LEFT')->fetchWhere(['a.id'=>['=',$value],'c.num'=>['>','=']],'a.Size_id,a.Goods_num,a.Goods_id,a.id,m.product_title,m.volume,m.freight,c.price,c.attribute,c.img,c.yprice,c.unit');
+                $r_c=$this->getModel('Cart')->alias('a')
+                ->join('product_list m','a.Goods_id=m.id','LEFT')
+                ->join("configure c","a.Size_id=c.id","left")
+                ->fetchWhere(['a.id'=>['=',$value],'c.num'=>['>','a.Goods_num']],'a.Size_id,a.Goods_num,a.Goods_id,a.id,m.product_title,m.volume,m.freight,c.price,c.attribute,c.img,c.yprice,c.unit');
                 if(!empty($r_c)){
                     $product = (array)$r_c['0']; // 转数组
                     $product['photo_x'] = $img.$product['img'];/* 拼接图片链接*/
@@ -1519,21 +1523,18 @@ class Product extends Api
         if($type == 'file'){
             //处理评论图片
             $id = trim($request->param('id'));//评论ID
+            $count=getModel('CommentsImg')->getCount("comments_id ='".$id."'",'id');
+            $count>3&&exit(json_encode(array('status'=>1,'err'=>'最多上传3张图片')));
             // 查询配置表信息
-            $r=$this->getModel('Config')->where(['id'=>['=','1']])->fetchAll('*');
-            if($r){
-                $uploadImg = $r[0]->uploadImg;
-            }
-
-            $imgURL=($_FILES['imgFile']['tmp_name']);
-            $type = str_replace('image/', '.', $_FILES['imgFile']['type']);
-            $imgURL_name=time().mt_rand(1,1000).$type;
-            move_uploaded_file($imgURL,$uploadImg.$imgURL_name);
+            $file=$request->file('imgFile');         
+            $imgURL_name=$this->uploadImg($file);
+            if($imgURL_name!==false)
             $res=$this->getModel('CommentsImg')->insert(['comments_url'=>$imgURL_name,'comments_id'=>$id,'add_time'=>nowDate()]);
-            
+            else 
+                $res=false;
             if($res){
                 $M->commit();
-                echo json_encode(array('status'=>1,'err'=>'修改成功','sql'=>$sql));
+                echo json_encode(array('status'=>1,'err'=>'修改成功','sql'=>''));
                 exit;
             }else{
                 $M->rollback();
@@ -1546,13 +1547,9 @@ class Product extends Api
             $comments = $json->comments;
             $r_d = 0;
             $oid = '';
-
-            // 查询配置表信息
-            $r=$this->getModel('Config')->where(['id'=>['=','1']])->fetchAll('*');
-            if($r)
-                $uploadImg = $r[0]->uploadImg;
             //敏感词表
             $badword=include('badword.php');
+            $badword=array_combine($badword,array_fill(0,count($badword),'**'));
         
             foreach ($comments as $key => $value){
                 $oid =  $value->orderId; // 订单号
@@ -1562,9 +1559,8 @@ class Product extends Api
                 $size =  $value->size; // 属性名称
                 $attribute_id =  $value->attribute_id; // 属性id
                 $content =  $value->content; // 评论内容
-                $badword1 = array_combine($badword,array_fill(0,count($badword),'*'));
 
-                $content = preg_replace ( "/\s(?=\s)/","\\1", $this->strtr_array($content, $badword1));
+                $content = strtr($content,$badword);
 
                 //特殊字符处理
                 $content = htmlentities($content);
@@ -1582,7 +1578,7 @@ class Product extends Api
                 if($content != '' || count($images) != 0){
                     $r_c=$this->getModel('Comments')->where(['oid'=>['=',$oid],'pid'=>['=',$pid],'attribute_id'=>['=',$attribute_id]])->fetchAll('oid');
                     if(empty($r_c['0'])){
-                        $lcid=$this->getModel('Comments')->insert(['oid'=>$oid,'uid'=>$user_id,'pid'=>$pid,'attribute_id'=>$attribute_id,'size'=>$size,'content'=>$content,'CommentType'=>$CommentType,'add_time'=>nowDate()]);
+                        $lcid=$this->getModel('Comments')->insert(['oid'=>$oid,'uid'=>$user_id,'pid'=>$pid,'attribute_id'=>$attribute_id,'size'=>$size,'content'=>$content,'CommentType'=>$CommentType,'add_time'=>nowDate()],1);
                         $cid[$value->pingid] = $lcid;
                         if($lcid > 0){
                             $r_d=$this->getModel('OrderDetails')->saveAll(['r_status'=>5],['r_sNo'=>['=',$oid],'sid'=>['=',$attribute_id]]);
@@ -1628,6 +1624,7 @@ class Product extends Api
             if ($len > $maxlen) $maxlen = $len;
             if ($len < $minlen) $minlen = $len;
         }
+       
         $len = strlen($str);
         $pos = 0;$result = '';
         while ($pos < $len) {
@@ -1728,7 +1725,7 @@ class Product extends Api
         }
         $re=$this->getModel('Draw')->where(['id'=>['=',$choujiangid]])->fetchAll('price');
 
-        $r_d=$this->getModel('Configure')->where(['id'=>['=','']])->fetchAll('*');
+        $r_d=$this->getModel('Configure')->where(['id'=>['=',$size]])->fetchAll('*');
         $size1 = '';
         if($r_d){
             $attribute = unserialize($r_d[0]->attribute);
@@ -1844,7 +1841,7 @@ class Product extends Api
 
             $sNo = $this ->order_number(); // 生成订单号
             $size_id = $size;//商品Size_id
-            $r_d=$this->getModel('Configure')->where(['id'=>['=','']])->fetchAll('*');
+            $r_d=$this->getModel('Configure')->where(['id'=>['=',$size]])->fetchAll('*');
             $size = '';
             if($r_d){
                 $attribute = unserialize($r_d[0]->attribute);

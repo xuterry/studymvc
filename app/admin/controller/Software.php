@@ -418,7 +418,7 @@ class Software extends Index
         
         // 更新数据表
         
-        $data=$this->parseSql("name = '$name',edition_text='$edition_text',image = '$image',type = '$type',edition = '$edition', edition_url = '$edition_url_name',add_time ='".nowDate()."'");       
+        $data=$this->parseSql("name = '$name',edition_text='$edition_text',image = '$image',type = '$type',edition = '$edition', edition_url = '$edition_url_name',add_time = '".nowDate()."'");       
         $r = $software->save($data,$id,'id');   
         if ($r == false) {
             

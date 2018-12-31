@@ -4,7 +4,6 @@ use core\Request;
 
 class Notice extends Api
 {
-
     function __construct()
     {
         parent::__construct();

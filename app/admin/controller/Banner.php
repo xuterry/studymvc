@@ -48,7 +48,7 @@ class Banner extends Index
         
         $uploadImg = $r[0]->uploadImg; // 图片上传位置
         
-        $products = $this->getModel('productList')->fetchOrder("sort,id","id,product_title,sort,add_date");
+        $products = $this->getModel('productList')->where("recycle=0")->fetchOrder("sort,id","id,product_title,sort,add_date");
         
         $this->assign('products', $products);
         
@@ -148,7 +148,7 @@ class Banner extends Index
             $url = '#';
         }
                
-        $products = $this->getModel('productList')->fetchOrder("sort,id","id,product_title,sort,add_date");
+        $products = $this->getModel('productList')->where("recycle=0")->fetchOrder("sort,id","id,product_title,sort,add_date");
         
         $this->assign('products', $products);
         
@@ -196,9 +196,7 @@ class Banner extends Index
         }
         
         // 更新数据表
-        
         $data=  $this->parseSql("image = '$image',url = '$url', sort = '$sort'");
-        
         $r = $this->banner->save($data,$id);
         
         if ($r == false) {

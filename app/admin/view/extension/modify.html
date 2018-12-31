@@ -606,12 +606,7 @@
 
                                           {foreach from=$data item=d key=key name=f1}
 
-                                          <div class="drag" type="{$d->type}" index="{$key+1}" style="zindex:{$key+1};left:{$d->left};top:{$d->top};
-
-                                               width:{$d->width};height:{$d->height}" 
-                                              size="{$d->size|default:''}" color="{$d->color|default:'#ff0000'}"
-
-                                               > 
+                                          <div class="drag" type="{$d->type}" index="{$key+1}" style="zindex:{$key+1};left:{$d->left};top:{$d->top}; width:{$d->width};height:{$d->height}" size="{$d->size|default:''}" color="{$d->color|default:'#ff0000'}" > 
 
                                                {if $d->type=='qr'}
 
@@ -630,22 +625,21 @@
                                                   <img src="{$uploadImg}{$d->src|default:'/style/tgt/onpic.jpg'}" />
 
                                                   
-
                                                 {elseif $d->type =='nickname'}
 
-                                                   <div class=text style="font-size:{$d->size};color:{$d->color}">昵称</div> 
+                                                   <div class="text" style="font-size:{$d->size|default:''};color:{$d->color|default:'#000000'}">{$d->text|default:'昵称'}</div> 
 
                                                {elseif $d->type =='title'}
 
-                                                   <div class=text style="font-size:{$d->size};color:{$d->color}">商品名称</div> 
+                                                   <div class="text" style="font-size:{$d->size|default:''};color:{$d->color|default:'#000000'}">{$d->text|default:'商品名称'}</div> 
 
                                                    {elseif $d->type =='marketprice'}
 
-                                                   <div class=text style="font-size:{$d->size};color:{$d->color}">商品现价</div> 
+                                                   <div class="text" style="font-size:{$d->size|default:''};color:{$d->color|default:'#000000'}">{$d->text|default:'商品现价'}</div> 
 
                                                    {elseif $d->type =='productprice'}
 
-                                                   <div class=text style="font-size:{$d->size};color:{$d->color}">商品原价</div> 
+                                                   <div class="text" style="font-size:{$d->size|default:''};color:{$d->color|default:'#000000'}">{$d->text|default:'商品原价'}</div> 
 
                                                 {/if}
 
@@ -1143,21 +1137,17 @@
                         height: obj.css('height')
 
                       };
-
                       if(type == 'nickname' || type == 'title' || type == 'marketprice' || type == 'productprice') {
 
                         d.size = obj.attr('size');
-
+                        d.text=obj.text();
                         d.color = obj.attr('color');
-
                       } else if(type == 'qr') {
 
                         d.size = obj.attr('size');
 
                       } else if(type == 'img') {
-
-                        d.src = obj.attr('src');
-
+                        d.src = obj.find('img').attr('src');
                       }
 
                       data.push(d);

@@ -47,7 +47,7 @@ class App extends Api
     public function user (Request $request)
     {
            
-        $software_name = trim($request->param('software_name')); // 软件名
+        $software_id = trim($request->param('software_id')); // 软件名
         $edition = trim($request->param('edition')); // 版本号
         
         $wxname = $request['nickName']; // 微信昵称
@@ -138,7 +138,7 @@ class App extends Api
                     $draw_id = $value0012->drawid;
                     $id = $value0012->id;
                     $sNo = $value0012->sNo;
-                    $re001201 = $this->getModel('draw')->alias('a')->join("user b","a.id=b.draw_id")
+                    $re001201 = $this->getModel('draw')->alias('a')->join("draw_user b","a.id=b.draw_id")
                     ->where("a.id = $draw_id and end_time < '$time02' and b.user_id = '$user_id' and lottery_status != 4")
                     ->select();
                     if (! empty($re001201)) {
@@ -189,10 +189,8 @@ class App extends Api
         }
 
         // 根据软件名称，查询软件id和名称
-        $r_software=$this->getModel('Software')->where(['name'=>['=',$software_name],'edition'=>['=',$edition],'type'=>['=','0']])->fetchAll('id');
-        if ($r_software) {
-            $software_id = $r_software[0]->id;
-        }
+       // $r_software=$this->getModel('Software')->where(['name'=>['=',$software_name],'edition'=>['=',$edition],'type'=>['=','0']])->fetchAll('id');
+
         // 查询插件表里,状态为启用的插件
         $r_c=$this->getModel('PlugIns')->where(['status'=>['=','1'],'type'=>['=','0'],'software_id'=>['=',$software_id]])->fetchAll('*');
         if ($r_c) {
@@ -214,9 +212,10 @@ class App extends Api
                 } else {
                     $sign[$k] = 0;
                 }
+                $r_c[$k]=$v;
             }
             $time_start = date("Y-m-d H:i:s", mktime(0, 0, 0, date('m'), date('d'), date('Y'))); // 当前时间
-                                                                                           // 查询签到活动
+            $day_time=date("Y-m-d 00:00:00");                                                                           // 查询签到活动
             $r_activity=$this->getModel('SignActivity')->where(['status'=>['=','1']])->fetchAll('*');
             if ($r_activity) {
                 $sign_image = $img . $r_activity[0]->image; // 签到弹窗图
@@ -225,11 +224,11 @@ class App extends Api
                     $sign_status = 0; // 不用弹出签名框
                 } else {
                     // 根据用户id、签到时间大于当天开始时间,查询签到记录
-                    $r_sign=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>','='],'type'=>['=','0']])->fetchAll('*');
+                    $r_sign=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$day_time],'type'=>['=','0']])->fetchAll('*');
                     if ($r_sign) {
-                        $sign_status = 0; // 有数据,代表当天签名了,不用弹出签名框
+                        $sign_status = 1; // 有数据,代表当天签名了,不用弹出签名框
                     } else {
-                        $sign_status = 1; // 没数据,代表当天还没签名,弹出签名框
+                        $sign_status = 0; // 没数据,代表当天还没签名,弹出签名框
                     }
                 }
             } else {

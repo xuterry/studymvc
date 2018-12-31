@@ -11,12 +11,10 @@ class Address extends Api
     }
     public function index (Request $request)
     {
-          
-        // 获取信息
+                  // 获取信息
         $openid = $request['openid']; // 微信id
                                     // 根据微信id,查询用户id
-        $r=$this->getModel('User')->where(['wx_id'=>['=',$openid]])->fetchAll('*');
-        $user_id = $r[0]->user_id;
+        $user_id = $this->getUserId($openid);
         // 根据用户id,查询地址表
         $r=$this->getModel('UserAddress')->where(['uid'=>['=',$user_id]])->fetchAll('*');
         

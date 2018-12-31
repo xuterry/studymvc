@@ -687,9 +687,11 @@ class Finance extends Index
         } else {
             $start = 0;
         }      
+        $condition = 'a.type !=0 and a.type !=6 and a.type !=7 and a.type !=8 and a.type !=9 and a.type !=10 and a.type !=15 and a.type !=16 and a.type !=17 and a.type !=18 ';
         
         $r=$this->getModel('Record')->alias('a')->join('user b','a.user_id=b.user_id','left')
-        ->where(['a.type'=>['<>','0'],'a.type'=>['<>','6'],'a.type'=>['<>','7'],'a.type'=>['<>','8'],'a.type'=>['<>','9'],'a.type'=>['<>','10'],'a.type'=>['<>','15'],'a.type'=>['<>','16'],'a.type'=>['<>','17'],'a.type'=>['<>','18'],'a.user_id'=>['=',$user_id]])
+        ->where($condition)
+         ->where(['a.user_id'=>['=',$user_id]])
         ->order(['a.add_date'=>'desc'])->field('a.*,b.user_name,b.mobile,b.source')->paginator($pagesize,$this->getUrlConfig($request->url));
         
         $url = $this->module_url . "/finance/yue_see?user_id=" . urlencode($user_id) . "&pagesize=" . urlencode($pagesize);

@@ -60,9 +60,7 @@ class Order extends Api
     }
 
     public function index (Request $request)
-    {
-        
-        
+    {            
         // 查询系统参数
         $res = "";
         $r_1=$this->getModel('Config')->where(['id'=>['=','1']])->fetchAll('*');
@@ -87,10 +85,10 @@ class Order extends Api
         $order_type = $request['order_type']; // 类型
         $otype = $request['otype']; // 类型
         if ($otype == 'pay5') {
-            $res = "and a.drawid > 0 "; // 一分钱抽奖
+            $res = "and drawid > 0 "; // 一分钱抽奖
         } else if ($otype == 'pay6') {
             // if(!empty($groupmsg)) $res = "and a.otype='pt' and a.pid='$groupmsg->status'"; // 我的拼团
-            $res = "and a.otype='pt'"; // 我的拼团
+            $res = "and otype='pt'"; // 我的拼团
         } else {
             $res = "";
         }
@@ -98,29 +96,29 @@ class Order extends Api
             if ($otype == 'pay6') {
                 // 拼团的状态没和其他订单状态共用字段，分开判断
                 if ($order_type == 'payment') {
-                    $res .= "and a.status = 0 "; // 未付款
+                    $res .= "and status = 0 "; // 未付款
                 } else if ($order_type == 'send') {
-                    $res .= "and a.status = 1 "; // 未发货
+                    $res .= "and status = 1 "; // 未发货
                 } else if ($order_type == 'receipt') {
-                    $res .= "and a.status = 2 "; // 待收货
+                    $res .= "and status = 2 "; // 待收货
                 } else if ($order_type == 'evaluate') {
-                    $res .= "and a.status = 3 "; // 待评论
+                    $res .= "and status = 3 "; // 待评论
                 } else {
                     $res = "";
                 }
             } else {
                 if ($order_type == 'payment') {
                     $status = 0;
-                    $res .= "and a.status = '$status'"; // 未付款
+                    $res .= "and status = '$status'"; // 未付款
                 } else if ($order_type == 'send') {
                     $status = 1;
-                    $res .= "and a.status = '$status' "; // 未发货
+                    $res .= "and status = '$status' "; // 未发货
                 } else if ($order_type == 'receipt') {
                     $status = 2;
-                    $res .= "and a.status = '$status'"; // 待收货
+                    $res .= "and status = '$status'"; // 待收货
                 } else if ($order_type == 'evaluate') {
                     $status = 3;
-                    $res .= "and a.status = '$status'"; // 待评论
+                    $res .= "and status = '$status'"; // 待评论
                 } else {
                     $res = "";
                 }
@@ -137,7 +135,7 @@ class Order extends Api
         
         $order = array();
         // 根据用户id和前台参数,查询订单表 (id、订单号、订单价格、添加时间、订单状态、优惠券id)
-        $r=$this->getModel('Orderasa')->where(['user_id'=>['=',$user_id]])->fetchOrder(['add_time'=>'desc'],'id,z_price,sNo,add_time,status,coupon_id,pid,drawid,ptcode');
+        $r=$this->getModel('Order')->where("user_id='".$user_id."' ".$res)->fetchOrder(['add_time'=>'desc'],'id,z_price,sNo,add_time,status,coupon_id,pid,drawid,ptcode');
         
         if ($order_type == 'send') { // 未发货
             if (! empty($r)) {
@@ -243,7 +241,7 @@ class Order extends Api
                 if ($rew['list']) {
                     foreach ($rew['list'] as $key => $values) {
                         if (strpos($values->r_sNo, 'PT') !== false) {
-                            $man_num=$this->getModel('GroupBuy')->fetchWhere(['status'=>['=',$v->pid]],'group_buy');
+                            $man_num=$this->getModel('GroupBuy')->fetchWhere(['status'=>['=',$v->pid]],'man_num');
                             $rew['man_num'] = ! empty($man_num) ? $man_num[0]->man_num : 0;
                             $rew['pro_id'] = $values->p_id;
                         }
@@ -260,9 +258,9 @@ class Order extends Api
                         }
                         $r_status = $values->r_status; // 订单详情状态
                         
-                        $res_o=$this->getModel('OrderDetails')->where(['r_sNo'=>['=',$sNo],'r_status'=>['<','>']])->fetchAll('id');
+                        $res_o=$this->getModel('OrderDetails')->getCount(['r_sNo'=>['=',$sNo],'r_status'=>['<','>']],'id');
                         
-                        $res_d=$this->getModel('OrderDetails')->where(['r_sNo'=>['=',$sNo]])->fetchAll('id');
+                        $res_d=$this->getModel('OrderDetails')->getCount(['r_sNo'=>['=',$sNo]],'id');
                         
                         // 如果订单下面的商品都处在同一状态,那就改订单状态为已完成
                         if ($res_o == $res_d) {
@@ -628,8 +626,8 @@ class Order extends Api
                     
                     $r_status = $values->r_status; // 订单详情状态
                     if ($r_status) {
-                        $res_o=$this->getModel('OrderDetails')->where(['r_sNo'=>['=',$sNo]])->fetchAll('id');
-                        $res_d=$this->getModel('OrderDetails')->where(['r_sNo'=>['=',$sNo]])->fetchAll('id');
+                        $res_o=$this->getModel('OrderDetails')->getCount("r_sNo = '$sNo' AND r_type = 0 AND r_status = 4",'id');
+                        $res_d=$this->getModel('OrderDetails')->getCount(['r_sNo'=>['=',$sNo]],'id');
                         // 如果订单下面的商品都处在同一状态,那就改订单状态为已完成
                         if ($res_o == $res_d) {
                             // 如果订单数量相等 则修改父订单状态
@@ -655,7 +653,7 @@ class Order extends Api
             $man_num = '';
             if ($r) {
                 if ($r[0]->otype == 'pt') {
-                    $man_num=$this->getModel('GroupBuy')->fetchWhere(['status'=>['=',$pid]],'group_buy');
+                    $man_num=$this->getModel('GroupBuy')->fetchWhere(['status'=>['=',$pid]],'man_num');
                     $man_num = $man_num[0]->man_num;
                 }
             }
@@ -686,11 +684,9 @@ class Order extends Api
         $back_remark = htmlentities($request['back_remark']); // 退货原因
         
         $r=$this->getModel('OrderDetails')->saveAll(['r_status'=>4,'content'=>$back_remark,'r_type'=>0,'re_type'=>$re_type],['id'=>['=',$id]]);
-        
-        $res_o=$this->getModel('OrderDetails')->where(['r_sNo'=>['=',$oid]])->fetchAll('id');
-        
-        $res_d=$this->getModel('OrderDetails')->where(['r_sNo'=>['=',$oid]])->fetchAll('id');
-        
+                
+        $res_o=$this->getModel('OrderDetails')->getCount("r_sNo = '$oid' AND r_type = 0 AND r_status = 4",'id');
+        $res_d=$this->getModel('OrderDetails')->getCount(['r_sNo'=>['=',$oid]],'id');
         if ($res_o == $res_d) {
             // 如果订单数量相等 则修改父订单状态
             $r=$this->getModel('Order')->saveAll(['status'=>4],['sNo'=>['=',$oid]]);

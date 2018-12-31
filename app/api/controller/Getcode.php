@@ -39,7 +39,7 @@ class Getcode extends Api
             $img = $uploadImg_domain . substr($uploadImg, 2); // 图片路径
         }
         $filename = "ewm" . $id . ".jpg"; // /
-        $imgDir = '../LKT/images/';
+        $imgDir = './images/';
         // 要生成的图片名字
         $newFilePath = $imgDir . $filename;
         if (is_file($newFilePath)) {
@@ -53,7 +53,7 @@ class Getcode extends Api
             // 把数据转化JSON 并发送
             $url = 'https://api.weixin.qq.com/cgi-bin/wxaapp/createwxaqrcode?access_token=' . $AccessToken;
             // 获取二维码API地址
-            $da = $this->httpsRequest($url, $data);
+            $da = $this->Curl($url, $data);
             // 发送post带参数请求
             
             $newFile = fopen($newFilePath, "w"); // 打开文件准备写入
@@ -67,9 +67,7 @@ class Getcode extends Api
 
     public function product_share (Request $request)
     {
-        
-        
-        
+            
         $product_img = $request->param('product_img_path');
         $str_r = trim(strrchr($product_img, '/'), '/');
         if ($str_r) {
@@ -85,66 +83,61 @@ class Getcode extends Api
         $yprice = $request->param('yprice');
         $nickname = $request->param('nickname');
         $head = $request->param('head');
-        $regenerate = trim($request->param('regenerate'));
-        
+        $regenerate = trim($request->param('regenerate'));       
         // 默认底图和logo
-        $logo = '../LKT/images/ditu/logo.png';
+        $logo = '/images/ditu/logo.png';
         
         $path = $request->param('path');
-        $id = $request->param('id');
-        
+        $id = $request->param('id');      
         // 生成密钥
         $utoken = '';
         $str = 'QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890';
         for ($i = 0; $i < 32; $i ++) {
             $utoken .= $str[rand(0, 61)];
-        }
-        
+        }        
         $uur=$this->getModel('User')->where(['user_id'=>['=',$id]])->fetchAll('img_token');
         $lu_token = isset($uur[0]) ? md5($uur[0]->img_token) : md5($id);
-        $img_token = isset($uur[0]) ? $uur[0]->img_token : false;
-        
+        $img_token = isset($uur[0]) ? $uur[0]->img_token : false;       
         // 定义固定分享图片储存路径 以便删除
-        $imgDir = 'product_share_img/';
+        $imgDir="product_share_img/";
         $r=$this->getModel('Config')->where(['id'=>['=','1']])->fetchAll('*');
         if ($r) {
             $appid = $r[0]->appid; // 小程序唯一标识
             $appsecret = $r[0]->appsecret; // 小程序的 app secret
             $uploadImg_domain = $r[0]->uploadImg_domain; // 图片上传域名
             $uploadImg = $r[0]->uploadImg; // 图片上传位置
+            $logn=$r[0]->logo;
             if (strpos($uploadImg, '../') === false) { // 判断字符串是否存在 ../
                 $img = $uploadImg_domain . $uploadImg; // 图片路径
             } else {
                 // 不存在
                 $img = $uploadImg_domain . substr($uploadImg, 2); // 图片路径
             }
-            $product_img = $uploadImg . $product_img;
-            $font_file_path = dirname(dirname(MO_WEBAPP_DIR));
-            $font_file = $font_file_path . substr($uploadImg, 2);
-        }
-        
-        $tkt_r=$this->getModel('Extension')->where(['type'=>['=',$type],'isdefault'=>['=','1']])->fetchAll('*');
-        
+            $product_img = check_file(PUBLIC_PATH.DS.$uploadImg . $product_img);
+            $font_file = PUBLIC_PATH."/font/font.ttf";
+            $sharePath =check_file(PUBLIC_PATH.DS.$uploadImg.DS. $imgDir);      
+            check_path($sharePath);
+        }       
+        $tkt_r=$this->getModel('Extension')->where(['type'=>['=',$type],'isdefault'=>['=','1']])->fetchAll('*');        
         $pic = $lu_token . '-' . $type . '-' . $pid . '-ewm.jpg';
         if ($regenerate || ! $img_token) {
             // 通过控制access_token 来校验不同二维码
-            @unlink($uploadImg . $imgDir . $pic);
+            if(is_file($sharePath . $pic))
+            @unlink($sharePath . $pic);
             $lu_token = md5($utoken);
             $update_rs=$this->getModel('User')->saveAll(['img_token'=>$utoken],['user_id'=>['=',$id]]);
             $pic = $lu_token . '-' . $type . '-ewm.jpg';
         }
         
-        if (is_file($uploadImg . $imgDir . $pic)) {
+        if (is_file($sharePath . $pic)) {
             $url = $img . $imgDir . $pic;
             $waittext = isset($tkt_r[0]->waittext) ? $tkt_r[0]->waittext : '#fff';
             echo json_encode(array(
                                     'status' => true,'url' => $url,'waittext' => $waittext
             ));
             exit();
-        }
-        
-        $waittext = isset($tkt_r[0]->waittext) ? $tkt_r[0]->waittext : '#fff';
-        
+        }       
+        $waittext = isset($tkt_r[0]->waittext) ? $tkt_r[0]->waittext : '#fff';       
         if (empty($tkt_r)) {
             $tkt_r=$this->getModel('Extension')->where(['type'=>['=',$type]])->fetchAll('*');
             if (empty($tkt_r)) {
@@ -154,31 +147,30 @@ class Getcode extends Api
                 ));
                 exit();
             }
-        }
-        
+        }     
         if ($type == '1') {
             // 文章
             if (! empty($r)) {
-                $bottom_img = $uploadImg . $tkt_r[0]->bg;
+                $bottom_img = check_file(PUBLIC_PATH.DS.$uploadImg . $tkt_r[0]->bg);
                 $data = $tkt_r[0]->data;
             }
         } else if ($type == '2') {
             // 红包
             if (! empty($r)) {
-                $bottom_img = $uploadImg . $tkt_r[0]->bg;
+                $bottom_img = check_file(PUBLIC_PATH.DS.$uploadImg . $tkt_r[0]->bg);
                 $data = $tkt_r[0]->data;
             }
         } else if ($type == '3') {
             // 商品
             if (! empty($r)) {
-                $bottom_img = $uploadImg . $tkt_r[0]->bg;
+                $bottom_img = check_file(PUBLIC_PATH.DS.$uploadImg . $tkt_r[0]->bg);
                 $data = $tkt_r[0]->data;
             }
             // var_dump($bottom_img);exit;
         } else {
             // 分销
             if (! empty($r)) {
-                $bottom_img = $uploadImg . $tkt_r[0]->bg;
+                $bottom_img = check_file(PUBLIC_PATH.DS.$uploadImg . $tkt_r[0]->bg);
                 $data = $tkt_r[0]->data;
             }
         }
@@ -189,89 +181,88 @@ class Getcode extends Api
         // title' >商品名称
         // thumb' >商品图片
         // marketprice' >商品现价
-        // productprice' >商品原价
-        
+        // productprice' >商品原价       
         // 创建底图
-        $dest = $this->create_imagecreatefromjpeg($bottom_img);
+       // $dest = $this->create_imagecreatefromjpeg($bottom_img);
+        $im=\Image::create(320,500,$sharePath . $pic);
+        $im->water($im->resize($bottom_img,320,500),1,50);
         $datas = json_decode($data);
+        $qr=[];
+        foreach ($datas as $key => $value) {
+            if($value->type=='qr'){
+                unset($datas[$key]);
+                $qr=$value;
+            }
+        }
+        !empty($qr)&&array_push($datas,$qr);
         foreach ($datas as $key => $value) {
             $data = [];
             // $data =$this->getRealData((array)$value);
             foreach ($value as $k => $v) {
                 if ($k == 'left' || $k == 'top' || $k == 'width' || $k == 'height' || $k == 'size') {
-                    $v = intval(str_replace('px', '', $v)) * 2;
+                    $v = intval(str_replace('px', '', $v)) ;
+                }
+                if($k=='color'){
+                    if(strlen($v)!=7)
+                        $v="#000000";
                 }
                 $data[$k] = $v;
             }
             if ($value->type == 'head') {
-                $this->write_img($dest, $data, $head);
+              //  $im->write_img($head, $data['left'],$data['top']);
+                $im->water($im->resize($head,$data['width'],$data['height']),[$data['left'],$data['top']]);             
             } else if ($value->type == 'nickname') {
-                $dest = $this->write_text($dest, $data, $product_title, $font_file);
+                $im->text($nickname,$font_file,$data['size'],$data['color'],[$data['left'],$data['top']],0);
+                //$dest = $this->write_text($dest, $data, $product_title, $font_file);
             } else if ($value->type == 'qr') {
                 $AccessToken = $this->getAccessToken($appid, $appsecret);
                 $share_qrcode = $this->get_share_qrcode($path, $value->width, $id, $AccessToken);
                 // var_dump($dest,$data,$share_qrcode);exit;
-                $dest = $this->write_img($dest, $data, $share_qrcode);
+                //$dest = $this->write_img($dest, $data, $share_qrcode);
+                $im->water($im->resize($share_qrcode,$data['width'],$data['height']),[$data['left'],$data['top']]);               
             } else if ($value->type == 'img') {
                 if ($value->src) {
-                    $imgs = $uploadImg . $value->src;
-                    $dest = $this->write_img($dest, $data, $imgs);
+                    $imgs =  check_file(PUBLIC_PATH.DS.$uploadImg . $value->src);
+                   // $dest = $this->write_img($dest, $data, $imgs);
+                    //$im->write_img($imgs, $data['left'],$data['top'],$data['width'],$data['height']); 
+                    $imgs=$im->resize($product_img, $data['width'], $data['height']);
+                    $im->water($imgs,[$data['left'],$data['top']]);
                 }
             } else if ($value->type == 'title') {
                 // 标题
-                $dest = $this->write_text($dest, $data, $product_title, $font_file);
+              //  $dest = $this->write_text($dest, $data, $product_title, $font_file);
+                $im->text($product_title,$font_file,$data['size'],$data['color'],[$data['left'],$data['top']],0);
+                
             } else if ($value->type == 'thumb') {
                 // 商品图合成
-                $dest = $this->write_img($dest, $data, $product_img);
+               // $dest = $this->write_img($dest, $data, $product_img);
             } else if ($value->type == 'marketprice') {
                 // 价格
                 $product_title = '￥' . $price;
-                $dest = $this->write_text($dest, $data, $product_title, $font_file);
+                //$dest = $this->write_text($dest, $data, $product_title, $font_file);
+                $im->text($product_title,$font_file,$data['size'],$data['color'],[$data['left'],$data['top']],0);
             } else if ($value->type == 'productprice') {
                 // 原价
                 $product_title = '￥' . $yprice;
-                $dest = $this->write_text($dest, $data, $product_title, $font_file);
+              //  $dest = $this->write_text($dest, $data, $product_title, $font_file);
+                $im->text($product_title,$font_file,$data['size'],$data['color'],[$data['left'],$data['top']],0);
                 $shanchuxian = '—';
                 for ($i = 0; $i < (strlen($product_title) - 3) / 4; $i ++) {
                     $shanchuxian .= $shanchuxian;
                 }
-                $dest = $this->write_text($dest, $data, $shanchuxian, $font_file);
+               // $dest = $this->write_text($dest, $data, $shanchuxian, $font_file);
+                $im->text($shanchuxian,$font_file,$data['size'],$data['color'],[$data['left'],$data['top']],0);               
+                
             }
-        }
-        
+        }    
         // header("content-type:image/jpeg");
-        imagejpeg($dest, $uploadImg . $imgDir . $pic);
+       // imagejpeg($dest, $sharePath . $pic);
+       $im->save($sharePath.$pic);
         $url = $img . $imgDir . $pic;
         echo json_encode(array(
                                 'status' => true,'url' => $url,'waittext' => $waittext
         ));
         exit();
-    }
-
-    public function create_imagecreatefromjpeg($pic_path)
-    {
-        $pathInfo = pathinfo($pic_path);
-        if (array_key_exists('extension', $pathInfo)) {
-            switch (strtolower($pathInfo['extension'])) {
-                case 'jpg':
-                case 'jpeg':
-                    $imagecreatefromjpeg = 'imagecreatefromjpeg';
-                    break;
-                case 'png':
-                    $imagecreatefromjpeg = 'imagecreatefrompng';
-                    break;
-                case 'gif':
-                default:
-                    $imagecreatefromjpeg = 'imagecreatefromstring';
-                    $pic_path = file_get_contents($pic_path);
-                    break;
-            }
-        } else {
-            $imagecreatefromjpeg = 'imagecreatefromstring';
-            $pic_path = file_get_contents($pic_path);
-        }
-        $im = $imagecreatefromjpeg($pic_path);
-        return $im;
     }
 
     public function getRealData($data)
@@ -291,15 +282,6 @@ class Getcode extends Api
         return $data;
     }
 
-    public function write_img($target, $data, $imgurl)
-    {
-        $img = $this->create_imagecreatefromjpeg($imgurl);
-        $w = imagesx($img);
-        $h = imagesy($img);
-        imagecopyresized($target, $img, $data['left'], $data['top'], 0, 0, $data['width'], $data['height'], $w, $h);
-        imagedestroy($img);
-        return $target;
-    }
 
     function autowrap($fontsize, $angle, $fontface, $string, $width)
     {
@@ -326,16 +308,13 @@ class Getcode extends Api
             $width = imagesx($dest) - $data['left'] * 2;
         } else {
             $width = imagesx($dest) * 2;
-        }
-        
-        $font_file = $fontfile . 'simhei.ttf';
-        
+        }           
         // var_dump($font_file);
         $colors = $this->hex2rgb($data['color']);
         $color = imagecolorallocate($dest, $colors['red'], $colors['green'], $colors['blue']); // 背景色
-        $string = $this->autowrap($data['size'], 0, $font_file, $string, $width);
+        $string = $this->autowrap($data['size'], 0, $fontfile, $data['text'], $width);
         $fontsize = $data['size'];
-        imagettftext($dest, $fontsize, 0, $data['left'], $data['top'], $color, $font_file, $string);
+        imagettftext($dest, $fontsize, 0, $data['left'], $data['top'], $color, $fontfile, $string);
         return $dest;
     }
 
@@ -365,8 +344,7 @@ class Getcode extends Api
 
     function wpjam_hex2rgb($hex)
     {
-        $hex = str_replace("#", "", $hex);
-        
+        $hex = str_replace("#", "", $hex);       
         if (strlen($hex) == 3) {
             $r = hexdec(substr($hex, 0, 1) . substr($hex, 0, 1));
             $g = hexdec(substr($hex, 1, 1) . substr($hex, 1, 1));
@@ -375,8 +353,7 @@ class Getcode extends Api
             $r = hexdec(substr($hex, 0, 2));
             $g = hexdec(substr($hex, 2, 2));
             $b = hexdec(substr($hex, 4, 2));
-        }
-        
+        }      
         return array(
                     $r,$g,$b
         );
@@ -402,7 +379,7 @@ class Getcode extends Api
         $imgDir = 'product_share_img/';
         $width = 430;
         // 要生成的图片名字
-        $newFilePath = $uploadImg . $imgDir . $filename;
+        $newFilePath = check_file(PUBLIC_PATH.DS.$uploadImg.DS.$imgDir . $filename);
         if (is_file($newFilePath)) {
             return $newFilePath;
         } else {
@@ -423,7 +400,7 @@ class Getcode extends Api
             // $url = 'https://api.weixin.qq.com/cgi-bin/wxaapp/createwxaqrcode?access_token=' . $AccessToken;
             // 获取二维码API地址
             
-            $da = $this->httpsRequest($url, $data);
+            $da = $this->Curl($url, $data);
             // 发送post带参数请求
             // var_dump($da);exit;
             // header('content-type:image/jpeg');
@@ -434,35 +411,8 @@ class Getcode extends Api
             return $newFilePath;
         }
     }
-
-    function httpsRequest($url, $data = null)
-    {
-        // 1.初始化会话
-        $ch = curl_init();
-        // 2.设置参数: url + header + 选项
-        // 设置请求的url
-        curl_setopt($ch, CURLOPT_URL, $url);
-        // 保证返回成功的结果是服务器的结果
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        if (! empty($data)) {
-            // 发送post请求
-            curl_setopt($ch, CURLOPT_POST, 1);
-            // 设置发送post请求参数数据
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        }
-        // 3.执行会话; $result是微信服务器返回的JSON字符串
-        $result = curl_exec($ch);
-        // 4.关闭会话
-        curl_close($ch);
-        return $result;
-    }
-
     public function Send_success($rew)
-    {
-        
-        
+    {   
         $r=$this->getModel('Config')->where(['id'=>['=','1']])->fetchAll('*');
         if ($r) {
             $appid = $r[0]->appid; // 小程序唯一标识
@@ -502,7 +452,7 @@ class Getcode extends Api
                 $data['data'] = $minidata;
                 $data = json_encode($data);
                 
-                $da = $this->httpsRequest($url, $data);
+                $da = $this->Curl($url, $data);
                 $delete_rs=$this->getModel('DrawUserFromid')->delete($fromid,'fromid');
                 var_dump(json_encode($da));
             }
@@ -528,8 +478,7 @@ class Getcode extends Api
 
     public function Send_Prompt (Request $request)
     {
-        
-        
+               
         $openid = trim($request->param('user_id')); // --
         $form_id = trim($request->param('form_id')); // --
         $page = trim($request->param('page')); // --
@@ -570,7 +519,7 @@ class Getcode extends Api
             $data = json_encode(array(
                                     'access_token' => $AccessToken,'touser' => $openid,'template_id' => $template_id,'form_id' => $form_id,'page' => $page,'data' => $o_data
             ));
-            $da = $this->httpsRequest($url, $data);
+            $da = $this->Curl($url, $data);
             echo json_encode($da);
             
             exit();
@@ -595,7 +544,7 @@ class Getcode extends Api
             }
         }
         // 重新发送请求
-        $result = $this->httpsRequest($url);
+        $result = $this->Curl($url);
         $jsonArray = json_decode($result, true);
         // 写入文件
         $accessToken = $jsonArray['access_token'];
@@ -629,7 +578,7 @@ class Getcode extends Api
         $userid = $r_w[0]->user_id;
         // $dest = imagecreatefromjpeg('../LKT/images/bottom/img01.jpg'); //底图1 http://127.0.0.1:8080/LKT/images/1523861937693.jpeg
         $dest = imagecreatefromjpeg($ditu); // 底图1
-        $dirName = '../LKT/images/';
+        $dirName = '/images/';
         $headfilename = 'logo.jpg';
         $filename = '';
         // 取得二维码图片文件名称

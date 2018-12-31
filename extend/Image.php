@@ -77,7 +77,51 @@ class Image
         }
 
     }
-
+    public static  function create($width=0,$height=0,$file)
+    {
+       if(($width==0||$height==0))
+           throw new \Exception('width or height error!');
+       $im=imagecreatetruecolor($width, $height);
+       $color=imagecolorallocate($im, 255, 255, 255);
+       imagefill($im, 0,0, $color);
+       imagejpeg($im,$file);       
+       return self::open($file);
+    }
+    public function resize($imgurl,$width,$height)
+    {
+        $im=imagecreatetruecolor($width, $height);
+        $color=imagecolorallocate($im, 255, 255, 255);
+        imagefill($im, 0,0, $color);
+        $img = $this->create_imagecreatefromjpeg($imgurl);
+        imagecopyresampled($im, $img, 0,0, 0, 0, $width,$height,imagesx($img), imagesy($img));
+       imagedestroy($img);
+       return $im;
+    }
+    public function create_imagecreatefromjpeg($pic_path)
+    {
+        $pathInfo = pathinfo($pic_path);
+        if (array_key_exists('extension', $pathInfo)) {
+            switch (strtolower($pathInfo['extension'])) {
+                case 'jpg':
+                case 'jpeg':
+                    $imagecreatefromjpeg = 'imagecreatefromjpeg';
+                    break;
+                case 'png':
+                    $imagecreatefromjpeg = 'imagecreatefrompng';
+                    break;
+                case 'gif':
+                default:
+                    $imagecreatefromjpeg = 'imagecreatefromstring';
+                    $pic_path = file_get_contents($pic_path);
+                    break;
+            }
+        } else {
+            $imagecreatefromjpeg = 'imagecreatefromstring';
+            $pic_path = file_get_contents($pic_path);
+        }
+        $im = $imagecreatefromjpeg($pic_path);
+        return $im;
+    }
     /**
      * 打开一个图片文件
      * @param \SplFileInfo|string $file
@@ -374,6 +418,7 @@ class Image
      */
     public function water($source, $locate = self::WATER_SOUTHEAST, $alpha = 100)
     {
+        if(!is_resource($source)){
         if (!is_file($source)) {
             throw new \Exception('水印图像不存在');
         }
@@ -385,6 +430,10 @@ class Image
         //创建水印图像资源
         $fun   = 'imagecreatefrom' . image_type_to_extension($info[2], false);
         $water = $fun($source);
+        }else{
+            $water=$source;
+            $info=[imagesx($water),imagesy($water)];
+        }
         //设定水印图像的混色模式
         imagealphablending($water, true);
         /* 设定水印位置 */

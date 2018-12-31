@@ -59,13 +59,14 @@ class Sign extends Api
                 $start_1 = date("Y-m-d 00:00:00", strtotime("-1 day")); // 昨天开始时间
                 $end_1 = date("Y-m-d 23:59:59", strtotime("-1 day")); // 昨天结束时间
                                                                      // 根据用户id, 查询昨天签到记录
-                $rrrr=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start_1],'sign_time'=>['<',$end_1],'type'=>['=','0']])->fetchAll('*');
+                $rrrr=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start_1]])
+                ->where(['sign_time'=>['<',$end_1],'type'=>['=','0']])->fetchAll('*');
                 if ($rrrr) { // 有数据,就循环查询连续签到几天
                     for ($i = 1; $i <= $day; $i ++) {
                         $start = date("Y-m-d 00:00:00", strtotime("-$i day"));
                         $end = date("Y-m-d 23:59:59", strtotime("-$i day"));
                         
-                        $r_num=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start],'sign_time'=>['<',$end],'type'=>['=','0']])->fetchAll('*');
+                        $r_num=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start]])->where(['sign_time'=>['<',$end],'type'=>['=','0']])->fetchAll('*');
                         if (empty($r_num)) {
                             $num = $i;
                             break;
@@ -175,22 +176,24 @@ class Sign extends Api
             $end_1 = date("Y-m-d 23:59:59", strtotime("-1 day")); // 昨天结束时间
             $num = 0;
             // 根据用户id, 查询昨天签到记录
-            $rrrr=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start_1],'sign_time'=>['<',$end_1],'type'=>['=','0']])->fetchAll('*');
+            $rrrr=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start_1]])
+            ->where(['sign_time'=>['<',$end_1],'type'=>['=','0']])->fetchAll('*');            
             if ($rrrr) { // 有数据,就循环查询连续签到几天
                 for ($i = 1; $i <= $day; $i ++) {
                     $start = date("Y-m-d 00:00:00", strtotime("-$i day"));
                     $end = date("Y-m-d 23:59:59", strtotime("-$i day"));
                     
-                    $r_num=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start],'sign_time'=>['<',$end],'type'=>['=','0']])->fetchAll('*');
+                    $r_num=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start]])
+                    ->where(['sign_time'=>['<',$end],'type'=>['=','0']])->fetchAll('*');
                     if (empty($r_num)) {
-                        $num = $i - 1;
                         break;
                     }
+                    $num++;
                 }
             }
             
-            $startdate = date("$year-$month-01 00:00:00", strtotime(date("Y-m-d"))); // 月开始时间
-            $enddate = date('Y-m-d 23:59:59', strtotime("$startdate +1 month -1 day")); // 月结束时间
+            $startdate = date("Y-m-00 00:00:00"); // 月开始时间
+            $enddate = date('Y-m-d 23:59:59', strtotime("$startdate +1 month")); // 月结束时间
             
             $y_time = date('Y', strtotime(date("Y-m-d"))); // 本年年份
             $m_time = date('m', strtotime(date("Y-m-d"))); // 本月月份
@@ -205,7 +208,9 @@ class Sign extends Api
             }
             
             $sign_time = [];
-            $r_2=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$startdate],'sign_time'=>['<',$enddate],'type'=>['=','0']])->fetchAll('sign_time');
+            $r_2=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$startdate]])
+            ->where(['sign_time'=>['<',$enddate],'type'=>['=','0']])->fetchAll('sign_time');
+            $is_sign=0;
             if ($r_2) {
                 foreach ($r_2 as $k => $v) {
                     $y = date("Y", strtotime($v->sign_time));
@@ -217,10 +222,12 @@ class Sign extends Api
                     if ($d < 10) {
                         $d = str_replace("0", "", $d);
                     }
+                    if(substr($v->sign_time,0,10)==date("Y-m-d"))
+                        $is_sign=1;
                     $sign_time[$k] = $y . $m . $d;
                 }
                 echo json_encode(array(
-                                        'status' => 1,'sign_time' => $sign_time,'imgurl' => $imgurl,'num' => $num,'details' => $details
+                                        'status' => 1,'is_sign'=>$is_sign,'sign_time' => $sign_time,'imgurl' => $imgurl,'num' => $num,'details' => $details
                 ));
                 exit();
             } else {
@@ -297,11 +304,10 @@ class Sign extends Api
 
     public function transfer_jifen (Request $request)
     {
-        
-        
-        $user_id = $_POST['user_id'];
-        $openid = $_POST['openid'];
-        $jifen = $_POST['jifen'];
+            
+        $user_id = $request['user_id'];
+        $openid = $request['openid'];
+        $jifen = $request['jifen'];
         $date_time = date('Y-m-d H:i:s', time());
         if ($jifen <= 0 || $jifen == '') {
             echo json_encode(array(

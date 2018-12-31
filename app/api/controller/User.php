@@ -35,7 +35,7 @@ class User extends Api
         $logo = $img . $logo;
         
         // 获取文章信息
-       // $r_2=$this->getModel('Article')->fetchAll('Article_id,Article_prompt,Article_title');
+        //$r_2=$this->getModel('Article')->order(['add_date'=>'desc'])->fetchAll('Article_id,Article_prompt,Article_title',5);
         
         // 查询会员信息
         $r=$this->getModel('User')->where(['wx_id'=>['=',$openid]])->fetchAll('*');
@@ -68,7 +68,7 @@ class User extends Api
         $res_order = [];
         foreach ($num_arr as $key => $value) {
             if ($value == '4') {
-                $order_num=$this->getModel('OrderDetails')->where(['r_status'=>['=',$value],'user_id'=>['=',$wx_name]])->fetchAll('num');
+                $order_num=$this->getModel('OrderDetails')->getCount(['r_status'=>['=',$value],'user_id'=>['=',$wx_name]],'num');
                 $res_order[$key] = $order_num;
             } else {
                 if ($value == 1) {
@@ -90,7 +90,7 @@ class User extends Api
                     }
                     $res_order[$key] = sizeof($re);
                 } else {
-                    $order_num=$this->getModel('Order')->where(['status'=>['=',$value],'user_id'=>['=',$wx_name]])->fetchAll('num');
+                    $order_num=$this->getModel('Order')->getCount(['status'=>['=',$value],'user_id'=>['=',$wx_name]],'num');
                     $res_order[$key] = $order_num;
                 }
             }
@@ -102,6 +102,7 @@ class User extends Api
         if ($r_c) {
             foreach ($r_c as $k => $v) {
                 $v->subtitle_image = $img . $v->subtitle_image;
+              // $r_c[$k]=$v;
                 if (strpos($v->subtitle_name, '红包') !== false) {
                     if (! $rfhb) {
                         unset($r_c[$k]);
@@ -132,6 +133,7 @@ class User extends Api
            $user = (array) json_decode($res);
            if(!empty($user['openid'])){
            Session::set('openid',$user['openid']); 
+           Session::set('session_key',$user['session_key']);
            return $user['openid'];
            }
           return '';
@@ -155,16 +157,14 @@ class User extends Api
         $r=$this->getModel('User')->saveAll(['user_name'=>$nickName,'wx_name'=>$nickName,'sex'=>$gender,'headimgurl'=>$avatarUrl],['wx_id'=>['=',$openid]]);
         
         echo json_encode(array(
-                                'status' => 1,'info' => '资料已更新','openid'=>$openid
+                                'status' => 1,'info' => '资料已更新','openid'=>$openid,'session_key'=>\core\Session::get('session_key')
         ));
         exit();
         return;
     }
 
     public function verify_paw (Request $request)
-    {
-        
-        
+    {              
         $openid = $request->param('openid');
         $ypwd = $request->param('password');
         $and = '';
@@ -173,7 +173,7 @@ class User extends Api
             $and = "AND password = '$ypwd' ";
         }
         // 验证密码是否存在 或是否设置
-        $r=$this->getModel('User')->where(['wx_id'=>['=',$openid]])->fetchAll('password');
+        $r=$this->getModel('User')->where("wx_id = '".$openid."' ".$and)->fetchAll('password');
         if ($r) {
             $pasw = $r[0]->password; // password
             if (! empty($pasw)) {
@@ -275,9 +275,7 @@ class User extends Api
     }
 
     public function secret_key (Request $request)
-    {
-        
-        
+    {             
         // 接收信息
         $encryptedData = $request->param('encryptedData'); // 加密数据
         $iv = $request->param('iv'); // 加密算法
@@ -294,9 +292,7 @@ class User extends Api
                 $appid = $r[0]->appid; // 小程序唯一标识
             } else {
                 $appid = '';
-            }
-            
-            include_once "wxBizDataCrypt.php";
+            }          
             $data = '';
             $pc = new WXBizDataCrypt($appid, $sessionKey);
             $errCode = $pc->decryptData($encryptedData, $iv, $data);
@@ -429,7 +425,7 @@ class User extends Api
                         exit();
                     }
                 } else {
-                    $bank_id=$this->getModel('UserBankCard')->insert(['user_id'=>$user_id,'Cardholder'=>$Cardholder,'Bank_name'=>$Bank_name,'Bank_card_number'=>$Bank_card_number,'mobile'=>$mobile,'add_date'=>nowDate(),'is_default'=>1]);
+                    $bank_id=$this->getModel('UserBankCard')->insert(['user_id'=>$user_id,'Cardholder'=>$Cardholder,'Bank_name'=>$Bank_name,'Bank_card_number'=>$Bank_card_number,'mobile'=>$mobile,'add_date'=>nowDate(),'is_default'=>1],1);
                 }
                 $res=$this->getModel('User')->where(['wx_id'=>['=',$openid]])->dec('money',$jine)->update();
                 // 在提现列表里添加一条数据
