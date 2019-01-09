@@ -176,6 +176,8 @@ class System extends Index
         $r=$config->get(1,'id');
         $upfile = $r[0]->upload_file; // 软件上传位置
         $error='';
+        $mch_cert = '/upfile/cert';        
+        if(!empty($flle['name'])){
         if($this->validate([$file],"requires|fileType:zip",$error)){
             $upload_file = $upfile.'/cert/'; // 文件上传位置
             $type = pathinfo($file['name'],PATHINFO_EXTENSION);
@@ -190,12 +192,10 @@ class System extends Index
             $uzip_res = unzip(check_file($zip_file),check_file(PUBLIC_PATH.$upload_file2),true);
 
             $uploadImg_domain = $r[0]->uploadImg_domain; // 图片上传域名
-            
-            if($uzip_res){
-               $mch_cert = '/upfile/cert';
-            }
+   
         }else 
             $this->error($error,$this->module_url.'/system/pay');
+        }
         // 更新
         $data =$this->parseSql( "mch_cert ='$mch_cert', mch_id = '$mch_id', mch_key = '$mch_key'");
        $r= $config->save($data,1,'id');

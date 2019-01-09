@@ -300,11 +300,8 @@ form[name=form1] input{
                 <thead id='thead'>
                     <tr id='attribute_1' >
                         {foreach from=$attribute_key item=item name=f1}
-                            {if $smarty.foreach.f1.first}
-                                <input type="hidden" >
-                            {else}
                                 <th style='text-align: center;'>{$item}</th>
-                            {/if}
+                            
                         {/foreach}
                         <th style='text-align: center;'>操作</th>
                     </tr>

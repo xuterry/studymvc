@@ -13,7 +13,7 @@ class Product extends Index
     }
     public function Index(Request $request)
     {
-                $product_class = addslashes(trim($request->param('cid'))); // 分类名称
+         $product_class = addslashes(trim($request->param('cid'))); // 分类名称
         $brand_id = addslashes(trim($request->param('brand_id'))); // 品牌id
         $status = addslashes(trim($request->param('status'))); // 上下架
         $s_type = addslashes(trim($request->param('s_type'))); // 类型
@@ -111,6 +111,7 @@ class Product extends Index
         }
         //$sql = "select * from lkt_product_list as a where $condition" . " order by status asc,a.add_date desc,a.sort desc limit $start,$pagesize ";
         $r = $this->product_list->alias('a')->where($condition)->order(['status'=>'asc','a.add_date'=>'desc','a.sort'=>'desc'])->paginator($pagesize,$this->getUrlConfig($request->url));
+      //  dump($this->product_list->relationQuery('product_img','product_id','id')->delete(2,"lkt_product_list.id"));exit();
         $pageshow=$r->render();
         $list = [];
         $status_num = 0;
@@ -665,8 +666,9 @@ class Product extends Index
             // 根据产品id，删除产品信息
             $update_rs=$this->product_list->saveAll(['recycle'=>1,'status'=>1],['id'=>['=',$v]]); 
 
-            $update_rs=$this->getModel('Configure')->saveAll(['recycle'=>1],['pid'=>['=',$v]]);
-
+           // $update_rs=$this->getModel('Configure')->saveAll(['recycle'=>1],['pid'=>['=',$v]]);
+            $this->getModel('Configure')->delete($v,'pid');
+            $update_rs=$this->getModel('ProductImg')->delete($v,'product_id');
             $update_rs=$this->getModel('ProductImg')->saveAll(['recycle'=>1],['product_id'=>['=',$v]]);
 
             $this->recordAdmin($admin_id,' 删除商品id为 '.$v.' 的信息',3);
@@ -737,7 +739,7 @@ class Product extends Index
         }
 
         //绑定产品分类
-        $r=$this->getModel('ProductClass')->where(['sid'=>['=','0']])->where("recycle=0")->fetchAll('cid,pname');
+        $r=$this->getModel('ProductClass')->where("recycle=0")->where(['sid'=>['=','0']])->where("recycle=0")->fetchAll('cid,pname');
         $res = '';
         foreach ($r as $key => $value) {
             $c = '-'.$value->cid.'-';
@@ -748,7 +750,7 @@ class Product extends Index
                 $res .= '<option  value="'.$c.'">'.$value->pname.'</option>';
             }
             //循环第一层
-            $r_e=$this->getModel('ProductClass')->where(['sid'=>['=',$value->cid]])->fetchAll('cid,pname');
+            $r_e=$this->getModel('ProductClass')->where("recycle=0")->where(['sid'=>['=',$value->cid]])->fetchAll('cid,pname');
             if($r_e){
                 $hx = '-----';
                 foreach ($r_e as $ke => $ve){
@@ -760,7 +762,7 @@ class Product extends Index
                         $res .= '<option  value="'.$cone.'">'.$hx.$ve->pname.'</option>';
                     }
                     //循环第二层
-                    $r_t=$this->getModel('ProductClass')->where(['sid'=>['=',$ve->cid]])->fetchAll('cid,pname');
+                    $r_t=$this->getModel('ProductClass')->where("recycle=0")->where(['sid'=>['=',$ve->cid]])->fetchAll('cid,pname');
                     if($r_t){
                         $hxe = $hx.'-----';
                         foreach ($r_t as $k => $v){
@@ -778,20 +780,17 @@ class Product extends Index
         }
 
         //产品分类
-        $r02=$this->getModel('BrandClass')->where(['status'=>['=','0']])->fetchAll('brand_id ,brand_name');
-        $imgurls = $this->getModel('ProductImg')->get($id,'product_id');
+        $r02=$this->getModel('BrandClass')->where("recycle=0")->where(['status'=>['=','0']])->fetchAll('brand_id ,brand_name');
+        $imgurls = $this->getModel('ProductImg')->where("recycle=0")->get($id,'product_id');
 
         //查询规格数据
-        $res_size = $this->getModel('Configure')->get($id,'pid');
+        $res_size = $this->getModel('Configure')->where("recycle=0")->get($id,'pid');
         if($res_size){
             $attribute = [];
             $attribute_1 = [];
-            $attribute_2 = '';
-            $attribute_3 = [];
             foreach ($res_size as $k => $v){
-                $attribute_3['rid'] = $v->id;
-                $attribute_2 = unserialize($v->attribute); // 属性
-                $attribute_1 = array_merge ($attribute_3,$attribute_2);
+                $attribute_1 = unserialize($v->attribute); // 属性
+                $attribute_1['rid']=$v->id;
                 $attribute_1['成本价'] = $v->costprice;
                 $attribute_1['原价'] = $v->yprice;
                 $attribute_1['现价'] = $v->price;
@@ -804,17 +803,15 @@ class Product extends Index
         empty($attribute)&&$this->error('attribute error',$this->module_url.'/product');
         $attribute1 = json_encode($attribute);
         $unit_arr = $attribute[0];
-        array_pop($unit_arr); // 删除数组最后一个元素
-        $unit = end($unit_arr); // 取数组最后一个元素
-        $attribute_key = array_keys($attribute[0]); // 属性表格第一栏
-        $attribute_key1 = array_keys($attribute[0]); // 填写属性
+        $unit = $unit_arr['单位']; // 取数组最后一个元素
+        unset($unit_arr['rid']);
+        $attribute_key = array_keys($unit_arr); // 属性表格第一栏
+        $attribute_key1 = array_keys($unit_arr); // 填写属性
         for ($i=0;$i<6;$i++){
             array_pop($attribute_key1); // 循环去掉数组后面6个元素
         }
         if($unit == ''){
-            $rer = "<option value='个'>" .
-                '个'.
-                "</option>";
+            $rer = "<option value='个'>个</option>";
         }else{
             $rer = "<option value='$unit'>" .
                 $unit.
@@ -822,13 +819,12 @@ class Product extends Index
         }
         $rew = '';
         foreach ($attribute_key1 as $key1 => $val1){
-            if($key1 != 0){
                 $rew .= "<div style='margin: 5px auto;' class='attribute_".($key1)." option' id='cattribute_".($key1)."' >";
                 $rew .= "<input type='text' name='attribute_name' id='attribute_name_".($key1)."' placeholder='属性名称' value='".$val1."' class='input-text' readonly='readonly' style=' width:50%;background-color: #EEEEEE;' />" .
                     " - " .
                     "<input type='text' name='attribute_value' id='attribute_value_".($key1)."' placeholder='值' value='' class='input-text' style='width:45%' />";
                 $rew .= "</div>";
-            }
+            
         }
         $num_k = count($attribute_key1);
         $rew .= "<div style='margin: 5px auto;display:none;' class='attribute_".$num_k." option' id='cattribute_".$num_k."' >" .
@@ -842,7 +838,6 @@ class Product extends Index
             $attribute_val[] = array_values($v1); // 属性表格
         }
        // $r022222=$this->getModel('DistributionGrade')->where(['is_ordinary'=>['=','0']])->fetchAll('id,sets');
-
         $distributors = [];
         $distributors_opt = '';
 
@@ -904,7 +899,6 @@ class Product extends Index
         $img_oldpic = addslashes(trim($request->param('img_oldpic'))); // 产品图片
         $imageurl_len=$request->post('imageurl_len');
         $arr = json_decode($attribute,true);
-
         $volume = trim($request->param('volume')); //拟定销量
         $freight = $request->param('freight'); // 运费
 
@@ -1037,7 +1031,6 @@ class Product extends Index
 
         $r_num = 0;
         $c_num = 0;
-
         foreach ($arr as $ke => $va){
             if(!empty($va['rid'])){
                 $r_id = $va['rid'];
@@ -1054,12 +1047,10 @@ class Product extends Index
             $unit = $va['单位'];
             $img = trim(strrchr($va['图片'], '/'),'/');
             for ( $i = 0;$i < 6;$i++){
-                array_pop($va); // 删除数组最后一个元素
+                array_pop($va); // 
             }
-            if($r_id1 != ''){
-                array_shift($va); // 删除数组第一个元素
-            }
-
+            if(isset($va['rid']))
+                unset($va['rid']);
             $attribute_1 = $va;
             $attribute = serialize($attribute_1);
             if(in_array($r_id,$rid)){

@@ -110,15 +110,16 @@ class Draw extends Index
         if ($res02 < $spelling_number) {
                $this->error('商品库存太少',$this->module_url.'/draw');
         } else {
-            
+            $rs=$this->getModel('Draw')->get($draw_brandid,'id');
+            $rs&&$this->error('已经有相同的活动',$this->module_url.'/draw');
             $r = $this->getModel('Draw')->insert([
                                                     'name' => $name,'draw_brandid' => $draw_brandid,'found_time' => $found_time,'start_time' => $start_time,'end_time' => $end_time,'num' => $num,'spelling_number' => $spelling_number,'collage_number' => $collage_number,'price' => $price,'cishu' => $cishu,'type' => $type
             ]);
-            if ($r == 1) {
-                echo 1;
-                exit();
+            if ($r) {
+                $this->success('添加成功',$this->module_url.'/draw');
             }
         }
+        exit();
         return $this->fetch('', [], [
                                         '__moduleurl__' => $this->module_url
         ]);
@@ -127,7 +128,7 @@ class Draw extends Index
     public function addsign(Request $request)
     {
         $request->method()=='post'&&$this->do_addsign($request);
-        $res01=$this->getModel('ProductList')->fetchAll('id,product_title,num');
+        $res01=$this->getModel('ProductList')->where("recycle=0")->fetchAll('id,product_title,num');
         $res = $res01 ? $res01 : 1;
         // print_r($res);die;
         
@@ -164,7 +165,7 @@ class Draw extends Index
         $res['name'] = $res1[0]->name;     
         $res['id'] = $res1[0]->id;     
         $draw_brandid = $res1[0]->draw_brandid;       
-        $res03=$this->getModel('ProductList')->where(['id'=>['=',$draw_brandid]])->fetchAll('id,product_title');     
+        $res03=$this->getModel('ProductList')->where("recycle=0")->where(['id'=>['=',$draw_brandid]])->fetchAll('id,product_title');     
         $res['product_title'] = $res03[0]->product_title;       
         $res['draw_brandid'] = $res1[0]->draw_brandid;       
         $res['start_time'] = substr($res1[0]->start_time,0,10);        
@@ -176,7 +177,7 @@ class Draw extends Index
         $res['spelling_number'] = $res1[0]->spelling_number;       
         $res['type'] = $res1[0]->type;        
         // print_r($res);die;       
-        $res01=$this->getModel('ProductList')->fetchAll('id,product_title');      
+        $res01=$this->getModel('ProductList')->where("recycle=0")->fetchAll('id,product_title');      
         $res02 = $res01 ? $res01 : 1;       
         $this->assign("res", $res02);      
         $this->assign("mm", $res);       

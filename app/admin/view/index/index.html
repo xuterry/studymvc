@@ -381,7 +381,7 @@
 				background-size: 18px 18px;
 				padding:0px 10px;
 				position: relative;
-    			top: 6px;
+    			top: 20px;
 			}
 			.message-bell{
 				height: 60px;
@@ -444,7 +444,7 @@
 			</ul>
 		</li>
 		<li class="headerLi" style="height: 60px;">
-			<div id="message">
+			<div id="message" >
 				<!--<a href="#javascript"><img src="/images/iIcon/xiaoxi.png"/></a>-->
 			</div>
 			
@@ -905,27 +905,26 @@
         $(function(){
             MessagePlugin.init({
                 elem: "#message",
-                msgData: [
-                    {text: "暂无信息", id: 1, readStatus: 1},
+                noticeData: [
+                    {text: "暂无信息", id: 1, readStatus: 0},
                 ],
                 msgUnReadData: 0,
-                noticeUnReadData: 0,
+                noticeUnReadData: 1,
                 msgClick: function(obj) {
-                    alert($(obj).text());
+                	appendMask($(obj).text());
                 },
                 noticeClick: function(obj) {
-                    alert("提醒点击事件");
+                	appendMask("提醒点击事件");
                 },
                 allRead: function(obj) {
-                    alert("全部已读");
-                },
+                	appendMask('全部已读',1);                },
                 getNodeHtml: function(obj, node) {
                     if (obj.readStatus == 1) {
                         node.isRead = true;
                     } else {
                         node.isRead = false;
                     }
-                    var html = "<p>"+ obj.text +"</p>";
+                    var html = "<p>sfsdfsds"+ obj.text +"</p>";
                     node.html = html;
                     return node;
                 }
@@ -1137,7 +1136,7 @@
 						<div class="maskNewContent">
 							<a href="javascript:void(0);" class="closeA" onclick=closeMask1() ><img src="/images/icon1/gb.png"/></a>
 							<div class="maskTitle">操作提示</div>	
-							<div style="text-align:center;margin-top:30px"><img src="/images/icon1/${src}.png"></div>
+							<div style="text-align:center;margin-top:30px"></div>
 							<div style="height: 50px;position: relative;top:20px;font-size: 22px;text-align: center;">
 								${content}
 							</div>

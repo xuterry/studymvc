@@ -127,7 +127,7 @@ class Userlist extends Index
         $conr = 0;
         foreach ($recip as $key => $value) {
             $datatime = date('Y-m-d H:i:s', time());
-            $r=$this->getModel('SystemMessage')->insert(['senderid'=>$senderid,'recipientid'=>$value,'title'=>$title,'content'=>$content,'time'=>$datatime]);
+            $r=$this->getModel('SystemMessage')->insert(['senderid'=>$senderid,'recipientid'=>$value,'title'=>$title,'content'=>$content,'time'=>$datatime],false);
             $conr += $r;
         }
         // print_r($cor);die;

@@ -95,7 +95,7 @@
                            <a style="text-decoration:none" class="ml-5" href="__moduleurl__/draw/modify?id={$item->id}" title="修改" >
                         	<div style="align-items: center;font-size: 12px;display: flex;">
                             	<div style="margin:0 auto;;display: flex;align-items: center;"> 
-                                <img src="/images/icon1/xg.png"/>&nbsp;修改
+                                <img src="/images/icon1/xg.png"/>
                             	</div>
                 			</div>
                         </a>
@@ -108,18 +108,18 @@
                             </font>
                         {else}
                         		 {if $item->status1 =='3' ||$item->status1 == 4 }
-                        		 		 <a style="text-decoration:none" class="ml-5" onclick="confirm1('活动未结束，不能删除',{$item->id})">
+                        		 		 <a style="text-decoration:none" class="ml-5" onclick="confirm1('活动未结束，不能删除',{$item->id})" title='删除'>
 		                            	<div style="align-items: center;font-size: 12px;display: flex;">
 			                            	<div style="margin:0 auto;;display: flex;align-items: center;"> 
-			                                <img src="/images/icon1/del.png"/>&nbsp;删除
+			                                <img src="/images/icon1/del.png"/>
 			                            	</div>
 		                				</div>
 		                            </a>
                         		 {else}
-		                            <a style="text-decoration:none" class="ml-5" href="javascript:void(0);" onclick="confirm('确定要删除此该活动吗?',{$item->id})">
+		                            <a style="text-decoration:none" class="ml-5" href="javascript:void(0);" onclick="confirm('确定要删除此该活动吗?',{$item->id})"title='删除'>
 		                            	<div style="align-items: center;font-size: 12px;display: flex;">
 			                            	<div style="margin:0 auto;;display: flex;align-items: center;"> 
-			                                <img src="/images/icon1/del.png"/>&nbsp;删除
+			                                <img src="/images/icon1/del.png"/>
 			                            	</div>
 		                				</div>
 		                            </a>
@@ -130,7 +130,7 @@
 							<a style="text-decoration:none" class="ml-5" href="__moduleurl__/draw/operation?id={$item->id}" title="详情" >
 								<div style="align-items: center;font-size: 12px;display: flex;">
 	                            	<div style="margin:0 auto;;display: flex;align-items: center;"> 
-	                                <img src="/images/icon1/ck.png"/>&nbsp;详情
+	                                <img src="/images/icon1/ck.png"/>
 	                            	</div>
                 				</div>
 							</a>
@@ -139,23 +139,23 @@
 							<a style="text-decoration:none" class="ml-5"  onclick="return confirm2('活动还未结束，确定抽奖吗？')" title="详情" >
 								<div style="align-items: center;font-size: 12px;display: flex;">
 	                            	<div style="margin:0 auto;;display: flex;align-items: center;"> 
-	                                <img src="/images/icon1/jrxt.png"/>&nbsp;抽奖
+	                                <img src="/images/icon1/jrxt.png"/>
 	                            	</div>
                 				</div>
 							</a>
 						{elseif $item->status1=='4'}
-							<a style="text-decoration:none" class="ml-5"onclick="return confirm1('活动未达到开奖人数，不能开奖')" >
+							<a style="text-decoration:none" class="ml-5"onclick="return confirm1('活动未达到开奖人数，不能开奖')" title='开奖'>
 								<div style="align-items: center;font-size: 12px;display: flex;">
 	                            	<div style="margin:0 auto;;display: flex;align-items: center;"> 
-	                                <img src="/images/icon1/jrxt.png"/>&nbsp;抽奖
+	                                <img src="/images/icon1/jrxt.png"/>
 	                            	</div>
                 				</div>
 							</a>
 						{elseif $item->status1=='5'}
-							<a style="text-decoration:none" class="ml-5"onclick="return confirm1('活动未开始')" >
+							<a style="text-decoration:none" class="ml-5"onclick="return confirm1('活动未开始')" title='开奖'>
 								<div style="align-items: center;font-size: 12px;display: flex;">
 	                            	<div style="margin:0 auto;;display: flex;align-items: center;"> 
-	                                <img src="/images/icon1/jrxt.png"/>&nbsp;抽奖
+	                                <img src="/images/icon1/jrxt.png"/>
 	                            	</div>
                 				</div>
 							</a>
