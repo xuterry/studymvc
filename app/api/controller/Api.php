@@ -20,7 +20,13 @@ class Api extends Controller
         $this->db_config = include (APP_PATH . DS . $this->model_path . DS . 'config.php');
         $this->module_path = Module::get_module();
     }
-
+ /**
+  * 获取数据
+  * @param string $url
+  * @param string $poststr
+  * @param string $cookie
+  * @return mixed
+  */
     protected function Curl($url, $poststr = '', $cookie = '')
     {
         $curl = curl_init();
@@ -67,17 +73,38 @@ class Api extends Controller
             return $this->model[$key] = new $model($this->db_config);
         }
     }
-
+  /**
+   * 获取配置
+   * @return \PDOStatement|boolean|\core\Collection|string
+   */
     protected function getConfig()
     {
         return $this->getModel('config')->get(1, 'id');
     }
+    /**
+     * 插入消息
+     */
+    protected function insertMsg($userid='',$title='',$detail='',$url='',$type=0,$role=0)
+    {     
+        return $this->getModel('message')
+        ->insert(['title'=>$title,'detail'=>$detail,'url'=>$url,'type'=>$type,'role'=>$role,'add_date'=>time(),'userid'=>$userid]);
+    }
+    /**
+     * 获取id
+     * @param string $openid
+     * @return string
+     */
     protected function getUserId($openid)
     {
         $r=$this->getModel('User')->where(['wx_id'=>['=',$openid]])->fetchAll('user_id',1);
         !empty($r)&&$user_id = $r[0]->user_id;
         return $user_id?:'';
     }
+    /**
+     * 获取上传路径
+     * @param string $path
+     * @return string|unknown
+     */
     protected function getUploadImg($path = false)
     {
         if ($path) {
@@ -86,7 +113,14 @@ class Api extends Controller
         }
         return Session::get('uploadImg') ?: $this->getConfig()[0]->uploadImg;
     }
-
+  /**
+   * 上传图片
+   * @param string $file
+   * @param int $size
+   * @param string $type
+   * @param string $path
+   * @return string|boolean
+   */
     protected function uploadImg($file, $size = 1024*512, $type = "jpg,jpeg,pgn,gif", $path = '')
     {
         empty($path) && $path = $this->getUploadImg();

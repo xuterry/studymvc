@@ -362,26 +362,38 @@
 			} 
 			.message-bell-btn{
 				margin: 0px;
+				height:30px;
+				width:30px;
+				position:relative;
+				top:20px;
+				
 			}
 			.icon-xiaoxi{
 				display: none;
 			}
 			.icon-tixing{
-				display: flex;
 				align-items: center;
 				height: 18px;
 				width: 18px;
+				display:block;
 			}
 			.icon-tixing:before{
-				display: inline-block;
+				display: block;
 				content:"";
 				width: 18px;
 				height: 18px;
 				background: url(/images/iIcon/xiaoxi.png) no-repeat;
 				background-size: 18px 18px;
-				padding:0px 10px;
+				padding:0px 0px;
 				position: relative;
-    			top: 20px;
+    			top: 0px;
+			}
+			.badge{
+		    position:relative;
+	            top:-16px;
+				padding:4px;
+				background-color:#ff5722;color:#fff;
+				display:block;
 			}
 			.message-bell{
 				height: 60px;
@@ -901,34 +913,55 @@
                 iframe_box.find(".show_iframe").hide().eq(bStopIndex).show().find("iframe").attr("src",href);
             }
         }
-
-        $(function(){
-            MessagePlugin.init({
+		var isshow=0;
+		var shownum=5;
+           function showMsg(){
+        	$.getJSON("__moduleurl__/message/getInfo",function(data){
+        		var Msg=MessagePlugin;
+        		Msg.setData(data.list);
+            	Msg.setShow(10);
+      		
+        		if(isshow==1)
+        			Msg.contentListDraw(2);
+                Msg.init({
                 elem: "#message",
-                noticeData: [
-                    {text: "暂无信息", id: 1, readStatus: 0},
-                ],
-                msgUnReadData: 0,
-                noticeUnReadData: 1,
-                msgClick: function(obj) {
-                	appendMask($(obj).text());
-                },
+                noticeUnReadData: data.num,
                 noticeClick: function(obj) {
-                	appendMask("提醒点击事件");
+                	var id=$(obj).find(".showcon").attr('data-id');
+                	var info=$(obj).find(".showcon");
+                	isshow=1;
+                	tab_titleList(info);
+                  $.getJSON("__moduleurl__/message/setMsg?id="+id,function(){
+                	  showMsg();
+                  });
+                	//appendMask("提醒点击事件"+obj.detail);
+                },
+                showMore:function(obj){
+                	Msg.setShow(5);
+                	Msg.contentListDraw(2);
                 },
                 allRead: function(obj) {
-                	appendMask('全部已读',1);                },
+                	if(data.num==0)
+                		return false;
+                    $.getJSON("__moduleurl__/message/setMsg?type=1",function(){
+                    appendMask("设置成功");
+                  	  showMsg();
+                    });                	},
                 getNodeHtml: function(obj, node) {
-                    if (obj.readStatus == 1) {
+                    if (obj.status == 1) {
                         node.isRead = true;
                     } else {
                         node.isRead = false;
                     }
-                    var html = "<p>sfsdfsds"+ obj.text +"</p>";
+                    var html = "<div class='showcon' data-id='"+obj.id+"' data-title='"+obj.title+"' data-href='"+obj.url+"'>"+ obj.title +"</div>";
                     node.html = html;
                     return node;
                 }
-            });
+            })
+        	});
+           }
+            $(function(){
+            	showMsg();
             $(".menu-system").each(function(){
                 $(this).mouseover(function(){
                     $(this).find(".asideImg").eq(0).hide();

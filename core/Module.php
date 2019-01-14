@@ -174,7 +174,7 @@ class Module
     }
     public function __destruct()
     {
-        self::$route=[];
-        self::$info=[];
+        //self::$route=[];
+       // self::$info=[];
     }
 }

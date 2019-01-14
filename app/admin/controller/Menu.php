@@ -22,7 +22,7 @@ class Menu extends Index
         $pagesize = $request->param('pagesize');
         $pagesize = $pagesize ? $pagesize : '10';
         // 每页显示多少条数据
-        $page = $request->param('page');
+        $page = intval($request->param('page'));
         
         $s_id1=$request->get('s_id1');
         $s_id2=$request->get('s_id2');

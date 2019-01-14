@@ -9,6 +9,13 @@ class Sign extends Api
     {
         parent::__construct();
     }
+    private function isSign($user_id)
+    {
+        $start = date("Y-m-d 00:00:00");
+        $end = date("Y-m-d 23:59:59");        
+        $r_num=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start]])->where(['sign_time'=>['<',$end],'type'=>['=','0']])->fetchAll('sign_time',1);
+       return $r_num?1:0;
+    }
     public function index (Request $request)
     {    
         $openid = trim($request->param('openid')); // 微信id
@@ -54,28 +61,34 @@ class Sign extends Api
             if ($rrr) {
                 $starttime = date("Ymd", strtotime($rrr[0]->starttime)); // 开始时间
                 $endtime = date("Ymd", strtotime($rrr[0]->endtime)); // 结束时间
+                $nowdate=date("Ymd");
+                if($nowdate-$endtime<0)
+                    exit(json_encode(['status'=>0,'data'=>'sign disable']));
                 $day = $endtime - $starttime; // 活动天数
                 
-                $start_1 = date("Y-m-d 00:00:00", strtotime("-1 day")); // 昨天开始时间
-                $end_1 = date("Y-m-d 23:59:59", strtotime("-1 day")); // 昨天结束时间
+                $start_1 = date("Y-m-d 00:00:00"); // 开始时间
+                $end_1 = date("Y-m-d 23:59:59"); // 结束时间
                                                                      // 根据用户id, 查询昨天签到记录
                 $rrrr=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start_1]])
                 ->where(['sign_time'=>['<',$end_1],'type'=>['=','0']])->fetchAll('*');
+                $num=0;
+                $is_sign=0;
                 if ($rrrr) { // 有数据,就循环查询连续签到几天
-                    for ($i = 1; $i <= $day; $i ++) {
+                    for ($i = 0; $i <= $day; $i ++) {
                         $start = date("Y-m-d 00:00:00", strtotime("-$i day"));
                         $end = date("Y-m-d 23:59:59", strtotime("-$i day"));
                         
-                        $r_num=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start]])->where(['sign_time'=>['<',$end],'type'=>['=','0']])->fetchAll('*');
+                        $r_num=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$start]])->where(['sign_time'=>['<',$end],'type'=>['=','0']])->fetchAll('sign_time');
                         if (empty($r_num)) {
-                            $num = $i;
                             break;
                         }
+                        $num++;
+                        if(substr($r_num[0]->sign_time,0,10)==date("Y-m-d"))
+                            $is_sign=1;
                     }
-                } else { // 没数据,连续签到就为1
-                    $num = 1;
                 }
             }
+            $is_sign&&exit(json_encode(['status'=>0,'data'=>'today signed']));
             if ($continuity_three != 0 && $num == 7) { // 当设置了连续7天奖励 并且 连续签到7天
                 $sign_score = $continuity_three;
             } else if ($continuity_twenty != 0 && $num == 20) { // 当设置了连续20天奖励 并且 连续签到20天
@@ -162,16 +175,19 @@ class Sign extends Api
             $details = '';
             // 查询正在进行的签到活动
             $rrr=$this->getModel('SignActivity')->where(['status'=>['=','1']])->fetchAll('*');
+            $sign_state=0;
             if ($rrr) {
+                $sign_state=1;
                 $starttime = date("Ymd", strtotime($rrr[0]->starttime)); // 开始时间
                 $endtime = date("Ymd", strtotime($rrr[0]->endtime)); // 结束时间
                 $details = $rrr[0]->detail;
-                
+                $nowdate=date("Ymd");
+                if($nowdate>$endtime)
+                    $sign_state=0;
                 $day = $endtime - $starttime; // 活动天数
             } else {
                 $day = 1;
             }
-            
             $start_1 = date("Y-m-d 00:00:00", strtotime("-1 day")); // 昨天开始时间
             $end_1 = date("Y-m-d 23:59:59", strtotime("-1 day")); // 昨天结束时间
             $num = 0;
@@ -191,18 +207,21 @@ class Sign extends Api
                     $num++;
                 }
             }
-            
-            $startdate = date("Y-m-00 00:00:00"); // 月开始时间
-            $enddate = date('Y-m-d 23:59:59', strtotime("$startdate +1 month")); // 月结束时间
-            
+            $is_sign=$this->isSign($user_id);
+            $startdate=$year.'-'.(strlen($month)>1?$month:'0'.$month).'-00 00:00:00';
+           // $startdate = date("Y-m-00 00:00:00",$time); // 月开始时间
+            $enddate = date('Y-m-d 23:59:59', strtotime("$startdate +1 month +1 day")); // 月结束时间
+            if(intval(substr($enddate,5,2))!=$month)
+                $enddate=substr($enddate,0,8).'01 00:00:00';
+           //echo $startdate.' '. $enddate;
             $y_time = date('Y', strtotime(date("Y-m-d"))); // 本年年份
             $m_time = date('m', strtotime(date("Y-m-d"))); // 本月月份
             if ($m_time < 10) {
                 $m_time = str_replace("0", "", $m_time);
             }
-            if ($year > $y_time || $month > $m_time) {
+            if ($year > $y_time || ($year==$y_time&&$month > $m_time)) {
                 echo json_encode(array(
-                                        'status' => 1,'sign_time' => '','imgurl' => $imgurl,'num' => $num,'details' => $details
+                                        'status' => 1,'sign_time' => '','imgurl' => $imgurl,'num' => $num,'details' => $details,'is_sign'=>$is_sign,'sign_state'=>$sign_state
                 ));
                 exit();
             }
@@ -210,7 +229,6 @@ class Sign extends Api
             $sign_time = [];
             $r_2=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$startdate]])
             ->where(['sign_time'=>['<',$enddate],'type'=>['=','0']])->fetchAll('sign_time');
-            $is_sign=0;
             if ($r_2) {
                 foreach ($r_2 as $k => $v) {
                     $y = date("Y", strtotime($v->sign_time));
@@ -222,23 +240,21 @@ class Sign extends Api
                     if ($d < 10) {
                         $d = str_replace("0", "", $d);
                     }
-                    if(substr($v->sign_time,0,10)==date("Y-m-d"))
-                        $is_sign=1;
                     $sign_time[$k] = $y . $m . $d;
                 }
                 echo json_encode(array(
-                                        'status' => 1,'is_sign'=>$is_sign,'sign_time' => $sign_time,'imgurl' => $imgurl,'num' => $num,'details' => $details
+                    'status' => 1,'is_sign'=>$is_sign,'sign_time' => $sign_time,'imgurl' => $imgurl,'num' => $num,'details' => $details,'sign_state'=>$sign_state
                 ));
                 exit();
             } else {
                 echo json_encode(array(
-                                        'status' => 0,'err' => '暂无签到记录！','num' => 0,'details' => $details
+                    'status' => 0,'err' => '暂无签到记录！','num' => 0,'details' => $details,'is_sign'=>$is_sign,'sign_state'=>$sign_state
                 ));
                 exit();
             }
         } else {
             echo json_encode(array(
-                                    'status' => 0,'err' => '系统繁忙！'
+                'status' => 0,'err' => '系统繁忙！','is_sign'=>$is_sign,'sign_state'=>$sign_state
             ));
             exit();
         }

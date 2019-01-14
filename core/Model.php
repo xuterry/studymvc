@@ -7,9 +7,9 @@ use core\db\Connection;
 2018
 model类
 */
-class Model
+class Model implements \ArrayAccess
 {
-    protected $data;
+    protected $data=[];
     /**
      * 数据库配置
      * @var array
@@ -121,9 +121,9 @@ class Model
         if($type==1)
             return array_keys($fields);
         elseif($type==2){
-            foreach($fields as $table=>$val){
+            foreach($fields as $field=>$val){
                 if($val['primary']===true){
-                    return $table;
+                    return $field;
                 }
             }
             return null;
@@ -244,9 +244,27 @@ class Model
     /**
      * 插入新数据
      */
-    public function insert($data=[],$returnId=false)
+    public function insert($data=[],$returnId=true)
     {
         return $this->db_query->insert($data,false,$returnId);
+    }
+    /**
+     * 关联模型查询
+     */
+    public function relationQuery($model,$foreignKey,$localKey='',$type='children')
+    {
+        empty($localKey)&&$localKey=$this->getFields(2);
+        if($model instanceof Model)
+            $model=$model->db_table;
+        if(empty($localKey))
+            throw new \Exception('primary key no exists');
+       if($type=='children'){
+            $this->db_query=$this->db_query->join($model.' Alias',$this->db_query->getTable().".".$localKey."=Alias.".$foreignKey,'left');
+        }
+        if($type=='parent'){
+            $this->db_query=$this->db_query->join($model.' Alias',$this->db_table->getTable().".".$localKey."=Alias.".$foreignKey,'right');
+        }
+        return $this;
     }
     /**
      * 重新配置数据库连接
@@ -265,17 +283,33 @@ class Model
         $this->db_query=$this->db_query->where($field,$op,$condition);
         return $this;
     }
-    function __get($name)
+    function offsetGet($name)
     {
         if(isset($this->data[$name]))
             return $this->data[$name];
     }
-    function __set($name,$value)
+    function offsetSet($name,$value)
     {
         if(isset($this->data[$name]))
             $this->data[$name]=$value;
     }
-    
+   function offsetExists($offset)
+   {
+       return isset($this->data[$offset]);
+   }
+   function offsetUnset($offset){
+       unset($this->data[$offset]);
+   }
+   public function __get($name)
+   {
+       if(isset($this->data[$name]))
+           return $this->data[$name];
+       
+   }
+   public function __set($name,$value)
+   {
+       $this->data[$name]=$value;
+   }
     /**
      * 分页
      */
@@ -302,6 +336,10 @@ class Model
     {
         $this->resetConn();
         unset($this->db_conn,$this->db_query);
-        self::$conn_instance=[];
+        foreach(self::$conn_instance as $k=>$inst){
+            $inst->free();
+            $inst->close();
+        }
+       // self::$conn_instance=[];
     }
 }

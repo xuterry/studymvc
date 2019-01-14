@@ -13,8 +13,8 @@ class Pay extends Api
     public function pay (Request $request)
     {               
         // 接收信息
-        $openid = $_POST['openid']; // 微信id
-        $cmoney = $_POST['cmoney']; // 充值金额
+        $openid = $request->post('openid'); // 微信id
+        $cmoney = $request->post('cmoney'); // 充值金额
         $type = trim($request->param('type'));
         if ($type == 'PT') {
             $pay = 'PT';
@@ -33,7 +33,6 @@ class Pay extends Api
             $mch_key = $rs[0]->mch_key; // 商户key
             $nonce_str = $this->nonce_str(); // 随机字符串
             $notify_url = $rs[0]->uploadImg_domain . '/callbackPay.php';
-            $openid = $openid; // 微信id
             $out_trade_no = $dingdanhao; // 商户订单号
             $spbill_create_ip = $rs[0]->ip; // ip地址
         } else {
@@ -43,7 +42,7 @@ class Pay extends Api
             $mch_key = ''; // 商户key
             $nonce_str = ''; // 随机字符串
             $notify_url = '';
-            $openid = $openid; // 微信id
+            $openid = ''; // 微信id
             $out_trade_no = $dingdanhao; // 商户订单号
             $spbill_create_ip = ''; // ip地址
         }
@@ -78,7 +77,7 @@ class Pay extends Api
             </xml> ';
         // 统一接口prepay_id
         $url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
-        $xml = $this->http_request($url, $post_xml);
+        $xml = $this->Curl($url, $post_xml);
         $array = $this->xml($xml); // 全要大写
                                    // print_r($array) ;exit;
         if ($array['RETURN_CODE'] == 'SUCCESS' && $array['RESULT_CODE'] == 'SUCCESS') {
@@ -131,27 +130,6 @@ class Pay extends Api
         $wx_key = $mch_key; // 申请支付后有给予一个商户账号和密码，登陆后自己设置key
         $stringSignTemp = $stringA . '&key=' . $wx_key; // 申请支付后有给予一个商户账号和密码，登陆后自己设置key
         return strtoupper(md5($stringSignTemp));
-    }
-
-    function http_request($url, $data = null, $headers = array())
-    {
-        $curl = curl_init();
-        if (count($headers) >= 1) {
-            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        }
-        curl_setopt($curl, CURLOPT_URL, $url);
-        
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-        
-        if (! empty($data)) {
-            curl_setopt($curl, CURLOPT_POST, 1);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-        }
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        $output = curl_exec($curl);
-        curl_close($curl);
-        return $output;
     }
 
     private function xml($xml)

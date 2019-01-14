@@ -167,6 +167,15 @@ function array_to_file($datas = [], $file = '', $return = 0)
     fclose($fh);
     unset($str, $paths, $datas);
 }
+function toDate($time=0,$format="Y-m-d H:i:s")
+{
+    $time==0&&$time=time();
+    return date($format,$time);
+}
+function exitJson($data)
+{
+    exit(json_encode($data));
+}
 
 /**
  * 将对象转换成数组

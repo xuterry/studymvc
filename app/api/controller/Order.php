@@ -393,7 +393,7 @@ class Order extends Api
                 $type = $r01[0]->type; // 快递公司代码
                 $kuaidi_name = $r01[0]->kuaidi_name;
                 $url = "http://www.kuaidi100.com/query?type=$type&postid=$courier_num";
-                $res = $this->httpsRequest($url);
+                $res = $this->Curl($url);
                 $res_1 = json_decode($res);
                 echo json_encode(array(
                                         'status' => 1,'res_1' => $res_1,'name' => $kuaidi_name,'courier_num' => $courier_num
@@ -413,32 +413,9 @@ class Order extends Api
         }
     }
 
-    function httpsRequest($url, $data = null)
-    {
-        // 1.初始化会话
-        $ch = curl_init();
-        // 2.设置参数: url + header + 选项
-        // 设置请求的url
-        curl_setopt($ch, CURLOPT_URL, $url);
-        // 保证返回成功的结果是服务器的结果
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        if (! empty($data)) {
-            // 发送post请求
-            curl_setopt($ch, CURLOPT_POST, 1);
-            // 设置发送post请求参数数据
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        }
-        // 3.执行会话; $result是微信服务器返回的JSON字符串
-        $result = curl_exec($ch);
-        // 4.关闭会话
-        curl_close($ch);
-        return $result;
-    }
-
     public function removeOrder (Request $request)
     {
-        
-        
+               
         // 获取信息
         $openid = $request->param('openid'); // 微信id
         $id = trim($request->param('id')); // 订单id
@@ -499,11 +476,31 @@ class Order extends Api
         }
         return;
     }
-
+   function message(Request $request)
+   {
+       $openid=$request->post('openid');
+       $userid=$this->getUserId($openid);     
+       $getmsg=$this->getModel('message')->where("userid='".$userid."'")
+       ->fetchOrder(['add_date'=>'desc'],'add_date',1);
+       if($getmsg){
+           $add_date=$getmsg[0]->add_date;
+           //提醒过于频繁
+          if((time()-$add_date)<3600)
+              exitJson(['status'=>2]);
+       }
+       $title=$request->post('title');
+       $getname=$request->post('ptitle');
+       //$getname=$this->getModel('productList')->fetchWhere("id=".$order_id,"product_title")[0]->product_title;
+       $detail=$title.' '.$getname;
+       $url=$request->post('url');
+       if($this->insertMsg($userid,$title,$detail,$url))
+           exitJson(['status'=>1]);
+       exitJson(['status'=>0]);
+       
+   }
     public function order_details (Request $request)
     {
-        
-        
+          
         // 查询系统参数
         $r_1=$this->getModel('Config')->where(['id'=>['=','1']])->fetchAll('*');
         $uploadImg_domain = $r_1[0]->uploadImg_domain; // 图片上传域名
@@ -857,8 +854,7 @@ class Order extends Api
 
     public function up_out_trade_no (Request $request)
     {
-        
-        
+              
         $coupon_id = trim($request->param('coupon_id')); // 优惠券id
         $allow = trim($request->param('allow')); // 用户使用消费金
         $coupon_money = trim($request->param('coupon_money')); // 付款金额

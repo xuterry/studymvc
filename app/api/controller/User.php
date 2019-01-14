@@ -54,7 +54,7 @@ class User extends Api
         }
         
         // 查询会员信息
-        $ru=$this->getModel('UserDistribution')->alias('d')->join('user u','d.pid=u.user_id','LEFT')->fetchWhere(['d.user_id'=>['=',$wx_name]],'u.user_name');
+        $ru=$this->getModel('UserDistribution')->alias('d')->join('user u','d.user_id=u.user_id','LEFT')->fetchWhere(['d.user_id'=>['=',$wx_name]],'u.user_name');
         if ($ru) {
             $tjr = '经纪人:' . $ru[0]->user_name;
         } else {

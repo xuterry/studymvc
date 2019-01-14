@@ -244,9 +244,9 @@ class Index extends Api
             $datatime = date("Y-m-d H:m:s", time());
             $r01 = $this->getModel('draw')->alias('a')->join("product_list b","a.draw_brandid=b.id")
             ->where("b.num >0 and a.start_time <= '" . $datatime . "' and a.end_time >= '" . $datatime . "'")
-          ->field("b.id,b.product_title,b.volume,b.imgurl,a.draw_brandid,a.start_time,a.end_time,a.price as price11")->select();
+          ->field("a.id,b.product_title,b.volume,b.imgurl,a.draw_brandid,a.start_time,a.end_time,a.price as price11")->select();
             foreach ($r01 as $key => $value) {
-                $draw_brandid = $value->id;
+                $draw_brandid = $value->draw_brandid;
                 $r01[$key]->imgurl=$this->getUploadImg(1).$value->imgurl;           
                 $r002=$this->getModel('Configure')->where(['num'=>['>','0'],'pid'=>['=',$draw_brandid]])->fetchAll('yprice');
                 // var_dump($r01,$value,$sql01,$r002,$sql002);

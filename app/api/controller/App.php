@@ -217,11 +217,14 @@ class App extends Api
             $time_start = date("Y-m-d H:i:s", mktime(0, 0, 0, date('m'), date('d'), date('Y'))); // 当前时间
             $day_time=date("Y-m-d 00:00:00");                                                                           // 查询签到活动
             $r_activity=$this->getModel('SignActivity')->where(['status'=>['=','1']])->fetchAll('*');
+            $sign_state=0;
             if ($r_activity) {
+                $sign_state=1;             
                 $sign_image = $img . $r_activity[0]->image; // 签到弹窗图
                 $endtime = $r_activity[0]->endtime; // 签到结束时间
                 if ($endtime <= $time_start) { // 当前时间大于签到结束时间
-                    $sign_status = 0; // 不用弹出签名框
+                    $sign_status = 1; // 不用弹出签名框
+                    $sign_state=0;
                 } else {
                     // 根据用户id、签到时间大于当天开始时间,查询签到记录
                     $r_sign=$this->getModel('SignRecord')->where(['user_id'=>['=',$user_id],'sign_time'=>['>',$day_time],'type'=>['=','0']])->fetchAll('*');
@@ -240,7 +243,7 @@ class App extends Api
             $nickName = $rr[0]->wx_name;
             $avatarUrl = $rr[0]->headimgurl;
             echo json_encode(array(
-                                    'access_token' => $access_token,'user_id' => $user_id,'plug_ins' => $r_c,'coupon' => in_array(1, $coupon),'wallet' => in_array(1, $wallet),'sign' => in_array(1, $sign),'sign_status' => $sign_status,'sign_image' => $sign_image,'nickName' => $nickName,'avatarUrl' => $avatarUrl
+                                    'access_token' => $access_token,'user_id' => $user_id,'plug_ins' => $r_c,'coupon' => in_array(1, $coupon),'wallet' => in_array(1, $wallet),'sign' => in_array(1, $sign),'sign_state'=>$sign_state,'sign_status' => $sign_status,'sign_image' => $sign_image,'nickName' => $nickName,'avatarUrl' => $avatarUrl
             ));
             exit();
         } else {

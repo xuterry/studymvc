@@ -871,7 +871,7 @@ left join lkt_configure as c on g.attr_id=c.id where g.group_id='$groupid' and g
                 $msgres=$this->getModel('Order')->alias('o')->join('order_details d','m.sNo=d.r_sNo','left')->join('user u','o.user_id=u.user_id','left')->fetchWhere(['o.pid'=>['=',$groupid],'o.ptcode'=>['=',$oid]],'o.*,d.p_name,d.p_price,d.num,d.sid,u.wx_id as uid');
                 
                 foreach ($msgres as $k => $v) {
-                    $updres=$this->getModel('Configuresetnum=num-$v->num')->saveAll(['num'=>num-$v->num],['id'=>['=',$v->sid]]);
+                    $updres=$this->getModel('Configure')->where(['id'=>['=',$v->sid]])->des('set',$v->num)->update();
                     if ($updres < 1) {
                         $M->rollback();
                         echo json_encode(array(

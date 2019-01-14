@@ -241,7 +241,7 @@ class Freight extends Index
             $this->error('未知原因，规则修改失败！',$this->module_url."/freight");
             
         }
-		return;
+		exit();
 	}
 
 	
@@ -282,7 +282,7 @@ class Freight extends Index
                 }
             }else{
                 $list = array();
-                $res = array('status' => '0','info'=>'已经全选！');
+                $res = array('status' => '0','info'=>'已经包含所有省份！');
                 echo json_encode($res);
                 return;
             }
@@ -298,11 +298,10 @@ class Freight extends Index
 	
     private function do_province($request)
     {
-		
-		
-
         $check_val = $request->param('check_val'); // 属性
         $G_CName = '';
+        if(empty($check_val))
+            exitJson(['status'=>0]);
         foreach ($check_val as $k => $v){
             $r=$this->getModel('AdminCgGroup')->where(['GroupID'=>['=',$v]])->fetchAll('G_CName');
             if($r){
@@ -313,7 +312,7 @@ class Freight extends Index
         $res = array('status' => '1','name'=>$name,'info'=>'成功！');
         echo json_encode($res);
 
-	    return;
+	    exit();
 	}
 
 	

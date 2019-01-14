@@ -213,7 +213,7 @@ return true;
 var freight_list = JSON.parse(document.getElementById('hidden_freight').value);
 var freight_num = freight_list.length;
 
-$("#type").change(function(){
+$("#typexx").change(function(){
     freight_num = 0;
     freight_list = [];
     $("#hidden_freight").val('');
@@ -253,7 +253,7 @@ function choice(){
                 $('.piece').hide();
             }
         }else{
-            appendMask("已经全选","cg");
+            appendMask("已经包含所有地区","cg");
         }
     });
 }
@@ -275,7 +275,7 @@ function save_address(){
     }
 
     $.post("__moduleurl__/freight/province",{check_val:check_val},function(result){
-        var result = JSON.parse( result );
+        var result = JSON.parse(result);
         if(result.status == 1){
             var name = result.name;
             var freight_1 = {};
@@ -366,7 +366,7 @@ function appendMask(content,src){
         <div class="maskNew">
             <div class="maskNewContent">
                 <a href="javascript:void(0);" class="closeA" onclick=closeMask1() ><img src="/images/icon1/gb.png"/></a>
-                <div class="maskTitle">删除</div>
+                <div class="maskTitle">提示</div>
                 <div style="text-align:center;margin-top:30px"><img src="/images/icon1/${src}.png"></div>
                 <div style="height: 50px;position: relative;top:20px;font-size: 22px;text-align: center;">
                     ${content}
