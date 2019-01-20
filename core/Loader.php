@@ -13,6 +13,7 @@ class Loader
     {
         spl_autoload_register('self::loadclass', true, true);
         self::auto_extend();
+        self::loadComposer();
     }
 
     public static function request()
@@ -31,6 +32,7 @@ class Loader
        // if(strpos($name,"_")!==false)
        //     list($path,$name)=explode("_",$name);
         $name = str_replace("\\", DS, $name);
+        $parsename=self::parseName($name);
         $class_file = ROOT_PATH . $name . '.php';
         if (is_file($class_file)){
             require_once $class_file;
@@ -39,6 +41,9 @@ class Loader
         else {
             if (is_file(self::$extend_path . DS . $name . '.php')){
                 require_once self::$extend_path . DS . $name . '.php';
+                return true;
+            }elseif(is_file(self::$extend_path.DS.$parsename.'.php')){
+                require_once self::$extend_path . DS . $parsename . '.php';
                 return true;
             }
             else {
@@ -121,7 +126,14 @@ class Loader
                                     E_ERROR,E_CORE_ERROR,E_COMPILE_ERROR,E_PARSE
         ]);
     }
-
+         
+   public static function loadComposer()
+   {
+       $vendor = ROOT_PATH   . 'vendor'.DS.'autoload.php';
+       if(is_file($vendor))
+        require_once $vendor;
+       
+   }
     // 加载扩展类的函数
     public static function auto_extend()
     {
