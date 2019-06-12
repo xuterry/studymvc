@@ -8,22 +8,33 @@ class Curl
  * @param $url
  * @return bool|mixed
  */
-    static public function get($url){
+    static public function get($url,$cookie=false,$return_type=0,$ref=''){
         $oCurl = curl_init();
         if(stripos($url,"https://")!==FALSE){
             curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, FALSE);
             curl_setopt($oCurl, CURLOPT_SSL_VERIFYHOST, FALSE);
             curl_setopt($oCurl, CURLOPT_SSLVERSION, 1); //CURL_SSLVERSION_TLSv1
         }
+        curl_setopt($oCurl , CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36");
+      //  curl_setopt($oCurl , CURLOPT_HEADER, 0);
         curl_setopt($oCurl, CURLOPT_URL, $url);
+        !empty($cookie)&&curl_setopt($oCurl, CURLOPT_COOKIE, $cookie);        
+        $return_type>0&&curl_setopt($oCurl , CURLOPT_HEADER, 1);       
+        !empty($ref)&&curl_setopt($oCurl, CURLOPT_REFERER,$ref);
+        
         curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1 );
         $sContent = curl_exec($oCurl);
-        $aStatus = curl_getinfo($oCurl);
-        curl_close($oCurl);
-        if(intval($aStatus["http_code"])==200){
-            return $sContent;
+        if($return_type>0){
+            $headerSize = curl_getinfo($oCurl, CURLINFO_HEADER_SIZE);
+            $header=substr($sContent,0,$headerSize);
+            $body=substr($sContent,$headerSize);
+            preg_match_all("/set\-cookie:([^\r\n]*)/i", $header, $matches);
+            $cookie = $matches[1];
+            curl_close($oCurl);          
+            return [$body,$header,$cookie];
         }else{
-            return false;
+            curl_close($oCurl);          
+            return $sContent;
         }
     }
 
@@ -62,14 +73,14 @@ class Curl
      * @param boolean $post_file 是否文件上传
      * @return string content
      */
-    static public function post($url,$param,$post_file=false){
+    static public function post($url,$param,$cookie=false,$return_type=0,$ref=''){
         $oCurl = curl_init();
         if(stripos($url,"https://")!==FALSE){
             curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, FALSE);
             curl_setopt($oCurl, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($oCurl, CURLOPT_SSLVERSION, 1); //CURL_SSLVERSION_TLSv1
         }
-        if (is_string($param) || $post_file) {
+        if (is_string($param)) {
             $strPOST = $param;
         } else{
             $aPOST = array();
@@ -78,18 +89,27 @@ class Curl
             }
             $strPOST =  join("&", $aPOST);
         }
+        curl_setopt($oCurl , CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36");      
         curl_setopt($oCurl, CURLOPT_URL, $url);
         curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1 );
         curl_setopt($oCurl, CURLOPT_POST,true);
         curl_setopt($oCurl, CURLOPT_POSTFIELDS,$strPOST);
+        !empty($cookie)&&curl_setopt($oCurl, CURLOPT_COOKIE, $cookie);
+        !empty($ref)&&curl_setopt($oCurl, CURLOPT_REFERER,$ref);       
+        $return_type>0&&curl_setopt($oCurl , CURLOPT_HEADER, 1);     
         $sContent = curl_exec($oCurl);
-        $aStatus = curl_getinfo($oCurl);
-        curl_close($oCurl);
-        dump(json_decode($sContent));
-        if(intval($aStatus["http_code"])==200){
-            return $sContent;
+        //$aStatus = curl_getinfo($oCurl);
+        if($return_type>0){
+            $headerSize = curl_getinfo($oCurl, CURLINFO_HEADER_SIZE);
+            $header=substr($sContent,0,$headerSize);
+            $body=substr($sContent,$headerSize);
+            preg_match_all("/set\-cookie:([^\r\n]*)/i", $header, $matches);
+            $cookie = $matches[1];
+            curl_close($oCurl);
+            return [$body,$header,$cookie];
         }else{
-            return false;
+            curl_close($oCurl);
+            return $sContent;
         }
     }
 
@@ -128,12 +148,59 @@ class Curl
         }else{
             return false;
         }
-
-
-
     }
-
-
+  static public function parseCookie($cookie)
+  {
+      !is_array($cookie)&&$cookie=[$cookie];
+      $cookies=[];
+      foreach($cookie as $v){
+          list($value)=explode(";",$v);
+          list($key,$val)=explode("=",$value);
+          $cookies[trim($key)]=trim($val);
+      }
+      return $cookies;
+  }
+  static public function getCookie($file)
+  {
+     $return='';
+     if(is_file($file)){
+         $info=unserialize(file_get_contents($file));
+         foreach($info as $key=>$val)
+             $return.=$key.'='.$val.';';
+         return substr($return,0,-1);
+     }
+     return $return;
+  }
+  static public function saveCookie($file,$cookies)
+  {
+      $cookies=self::parseCookie($cookies);  
+      if(!empty($cookies))
+      writefile('',$file,serialize($cookies));
+  }
+  static public function updateCookie($file,$cookies)
+  {
+      $cookies=self::parseCookie($cookies);
+      if(!empty($cookies)){
+      if(is_file($file)){
+          $info=unserialize(file_get_contents($file));
+          foreach($cookies as $k=>$v)
+          $info[$k]=$v;
+      }else 
+          $info=$cookies;
+      writefile('',$file,serialize($cookies)); 
+      }
+  }
+  static public function decondestr($value,$to='UTF-8',$from='GBK')
+  {
+      if(is_string($value)){
+          return mb_convert_encoding($value,$to,$from);
+      }else{
+          foreach($value as $k=>$v){
+              $return[$k]=mb_convert_encoding($v, $to,$from);
+          }
+          return $return;
+      }
+  }
     /**
      * 生成安全JSON数据
      * @param array $array

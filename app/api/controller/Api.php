@@ -4,6 +4,7 @@ namespace app\api\controller;
 use core\Controller;
 use core\Model;
 use core\Session;
+use core\Cache;
 use core\Module;
 
 class Api extends Controller
@@ -20,13 +21,15 @@ class Api extends Controller
         $this->db_config = include (APP_PATH . DS . $this->model_path . DS . 'config.php');
         $this->module_path = Module::get_module();
     }
- /**
-  * 获取数据
-  * @param string $url
-  * @param string $poststr
-  * @param string $cookie
-  * @return mixed
-  */
+
+    /**
+     * 获取数据
+     * 
+     * @param string $url            
+     * @param string $poststr            
+     * @param string $cookie            
+     * @return mixed
+     */
     protected function Curl($url, $poststr = '', $cookie = '')
     {
         $curl = curl_init();
@@ -69,40 +72,75 @@ class Api extends Controller
         if (isset($this->model[$key]))
             return $this->model[$key];
         else {
-            $model = "\\app\\".$this->model_path."\\model\\" . $name;
+            $model = "\\app\\" . $this->model_path . "\\model\\" . $name;
             return $this->model[$key] = new $model($this->db_config);
         }
     }
-  /**
-   * 获取配置
-   * @return \PDOStatement|boolean|\core\Collection|string
-   */
+
+    /**
+     * 获取配置
+     * 
+     * @return \PDOStatement|boolean|\core\Collection|string
+     */
     protected function getConfig()
     {
         return $this->getModel('config')->get(1, 'id');
     }
+
     /**
      * 插入消息
      */
-    protected function insertMsg($userid='',$title='',$detail='',$url='',$type=0,$role=0)
-    {     
-        return $this->getModel('message')
-        ->insert(['title'=>$title,'detail'=>$detail,'url'=>$url,'type'=>$type,'role'=>$role,'add_date'=>time(),'userid'=>$userid]);
+    protected function insertMsg($userid = '', $title = '', $detail = '', $url = '', $type = 0, $role = 0)
+    {
+        return $this->getModel('message')->insert([
+                                                        'title' => $title,'detail' => $detail,'url' => $url,'type' => $type,'role' => $role,'add_date' => time(),'userid' => $userid
+        ]);
     }
+
+    /**
+     * 获取token
+     */
+    protected function get_token($config = [])
+    {
+        if (Cache::get("access_token")) {
+                return Cache::get("access_token");
+        }
+        $r = empty($config) ? $this->getConfig() : $config;
+        $appid = $r[0]->appid; // 小程序唯一标识
+        $appsecret = $r[0]->appsecret; // 小程序的 app secret
+        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" . $appid . "&secret=" . $appsecret;
+        $res = $this->Curl($url);
+        $rs = json_decode($res, 1);
+        if (! empty($rs['access_token'])) {
+            Cache::set('access_token', $rs['access_token'],$rs['expires_in']);
+            return $rs['access_token'];
+        }
+        return '';
+    }
+
     /**
      * 获取id
-     * @param string $openid
+     * 
+     * @param string $openid            
      * @return string
      */
     protected function getUserId($openid)
     {
-        $r=$this->getModel('User')->where(['wx_id'=>['=',$openid]])->fetchAll('user_id',1);
-        !empty($r)&&$user_id = $r[0]->user_id;
-        return $user_id?:'';
+        $r = $this->getModel('User')
+            ->where([
+                        'wx_id' => [
+                                        '=',$openid
+                        ]
+        ])
+            ->fetchAll('user_id', 1);
+        ! empty($r) && $user_id = $r[0]->user_id;
+        return $user_id ?: '';
     }
+
     /**
      * 获取上传路径
-     * @param string $path
+     * 
+     * @param string $path            
      * @return string|unknown
      */
     protected function getUploadImg($path = false)
@@ -113,14 +151,16 @@ class Api extends Controller
         }
         return Session::get('uploadImg') ?: $this->getConfig()[0]->uploadImg;
     }
-  /**
-   * 上传图片
-   * @param string $file
-   * @param int $size
-   * @param string $type
-   * @param string $path
-   * @return string|boolean
-   */
+
+    /**
+     * 上传图片
+     * 
+     * @param string $file            
+     * @param int $size            
+     * @param string $type            
+     * @param string $path            
+     * @return string|boolean
+     */
     protected function uploadImg($file, $size = 1024*512, $type = "jpg,jpeg,pgn,gif", $path = '')
     {
         empty($path) && $path = $this->getUploadImg();
@@ -152,15 +192,15 @@ class Api extends Controller
         if (empty($msg)) {
             if ($this->validate([
                                     $file
-            ], "requires|fileType:".$type."|fileSize:".$size, $msg)) {
+            ], "requires|fileType:" . $type . "|fileSize:" . $size, $msg)) {
                 list ($name, $filetype) = explode('.', $file['name']);
-                if(strpos($type,$filetype)===false)
-                    $filetype='jpg';
+                if (strpos($type, $filetype) === false)
+                    $filetype = 'jpg';
                 $imgURL_name = time() . mt_rand(1, 1000) . '.' . $filetype;
-                move_uploaded_file($file['tmp_name'], check_file(PUBLIC_PATH . $path .DS. $imgURL_name));
+                move_uploaded_file($file['tmp_name'], check_file(PUBLIC_PATH . $path . DS . $imgURL_name));
                 return $imgURL_name;
             } else
-               return false;
+                return false;
         }
         return false;
     }

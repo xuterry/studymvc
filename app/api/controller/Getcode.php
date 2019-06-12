@@ -512,7 +512,7 @@ class Getcode extends Api
                             'keyword1' => $company,'keyword2' => $time,'keyword3' => $f_pname,'keyword4' => $f_sNo,'keyword5' => $f_price
             );
             
-            $AccessToken = $this->getAccessToken($appid, $appsecret);
+            $AccessToken = $this->get_token($r);
             $url = 'https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token=' . $AccessToken;
             $r=$this->getModel('Notice')->where(['id'=>['=','1']])->fetchAll('*');
             $template_id = $r[0]->pay_success;

@@ -3,7 +3,7 @@
 // 应用公共文件
 
 /**
- * 根据start,end获取客串的内容,need=1表示没有搜索到end截取start形如的位置
+ * 根据start,end获取字符串的内容,need=1表示没有搜索到end截取start形如的位置
  *
  * @param string $start            
  * @param string $end            
@@ -42,6 +42,8 @@ function get_file_name($filename)
  */
 function writefile($path = '', $name = '', $str, $mode = 1)
 {
+    !empty($path)&&$path=str_replace("\\", "/", $path);
+    $name=str_replace("\\","/",$name);
     if ($path == '') {
         $paths = explode("/", $name);
         $len = sizeof($paths);
@@ -167,6 +169,22 @@ function array_to_file($datas = [], $file = '', $return = 0)
     fclose($fh);
     unset($str, $paths, $datas);
 }
+function file_to_gen($filename)
+{
+        $fh=fopen($filename,'r');
+        $gets='';$i=0;
+        while(!feof($fh)){
+            $i++;
+            $gets.=fgets($fh);
+            if(preg_match("/\'[0-9-a-zA-Z]+'=>\\n\['[0-9-a-zA-Z]'=>(.+),\]\\n/isU",$gets,$match)){
+                $var=[];
+                eval("\$var=[".$match[0]."];");
+                yield key($var)=>current($var);
+                $gets='';
+            }
+        }
+        fclose($fh);
+}
 function toDate($time=0,$format="Y-m-d H:i:s")
 {
     $time==0&&$time=time();
@@ -270,9 +288,9 @@ function value_precision($num = 0)
 }
 
 /**
- * 获取data的最大和最小值
+ * 获取data的极大和极小值
  *
- * @param unknown $data            
+ * @param array $data            
  * @param number $period            
  * @return boolean|number[]|unknown[]
  */
@@ -281,67 +299,62 @@ function get_max_min($data, $period = 18)
     if (! is_array($data))
         return false;
     $size = sizeof($data);
-    $temp_min = [];
-    $temp_max = [];
-    $max_value = 0;
-    $min_value = 0;
-    $min_key = - 1;
-    $max_key = - 1;
-    $origin = $data[$size - 1];
-    for ($i = $size - 2; $i >= 0; $i --) {
-        $value = $data[$i];
-        if ($value > $origin)
-            $temp_max[] = $i;
-        if ($value < $origin)
-            $temp_min[] = $i;
-        if (sizeof($temp_min) > 1)
-            for ($j = 1; $j < sizeof($temp_min); $j ++) {
-                if ($data[$temp_min[$j] - 1] > $data[$temp_min[$j]]) {
-                    $min_value = $data[$temp_min[$j]];
-                    $min_key = $temp_min[$j];
-                    break;
-                }
-            }
-        if (sizeof($temp_max) > 1)
-            for ($j = 0; $j < sizeof($temp_max); $j ++) {
-                if ($data[$temp_max[$j] - 1] < $data[$temp_max[$j]]) {
-                    $max_value = $data[$temp_max[$j]];
-                    $max_key = $temp_max[$j];
-                    break;
-                }
-            }
-        if ($max_key > - 1 && $min_key > - 1)
-            break;
-        if ($i == $size - $period) {
-            if ($max_key == - 1 && $min_key > - 1) {
-                if (sizeof($temp_max) > 1)
-                    $max_value = $data[$i];
-            }
-            if ($max_key > - 1 && $min_key == - 1) {
-                if (sizeof($temp_min) > 1)
-                    $min_value = $data[$i];
-            }
-            break;
+    if($size<$period)
+        return false;
+    $data=array_slice($data,$size-$period);
+    $len=count($data);
+    $max_data=$min_data=[];
+    for($i=$len-2;$i>0;$i--){
+        if($data[$i]>=$data[$i-1]&&$data[$i]>=$data[$i+1])
+            $max_datas[$i]=$data[$i];
+        if($data[$i]<=$data[$i-1]&&$data[$i]<=$data[$i+1]){
+            $min_data[$i]=$data[$i];
         }
     }
-    if (sizeof($temp_min) == 1)
-        $min_value = $data[$temp_min[0]];
-    if (sizeof($temp_min) == 0)
-        $min_value = $origin;
-    if (sizeof($temp_max) == 1)
-        $max_value = $data[$temp_max[0]];
-    if (sizeof($temp_max) == 0)
-        $max_value = $origin;
+    if(!empty($max_data)){
+        $max_value=max($max_data);
+        $max_key=array_search($max_value,$max_data);
+    }
+    if(!empty($min_data)){
+        $min_value=min($min_data);
+        $min_key=array_search($min_value,$min_data);
+    }
+    if(!isset($max_value)){
+        $max_value=max($data);
+        $max_key=array_search($max_value,$data);
+    }
+    if(!isset($min_value)){
+        $min_value=min($data);
+        $min_key=array_search($max_value,$data);
+    }
     return [
-                'max' => $max_value,'min' => $min_value
+                'max' => $max_value,'min' => $min_value,'max_key'=>$max_key,'min_key'=>$min_key
     ];
 }
-
+/**
+ * 从后面返回数组中的值的键
+ */
+ function array_search_recursive($search,$array)
+ {
+     $keys=array_keys($array,$search);
+     return empty($keys)?false:end($keys);
+ }
+ function array_chunk_data($data)
+ {
+     array_walk($data, function (&$val) {
+         $val = array_sum($val) / count($val);
+     });
+     return $data;
+ }
 // 获取data的ma值
-function trade_ma($data, $num)
+function trade_ma($data, $num=5,$key=0)
 {
     $return = [];
     $sum = 0;
+    if($key!=0){
+        $keys=array_keys($data);
+        $data=array_values($data);
+    }
     for ($i = 0; $i < sizeof($data); $i ++) {
         if ($i < $num) {
             $sum = $sum + $data[$i];
@@ -351,9 +364,16 @@ function trade_ma($data, $num)
             $return[$i] = $sum / $num;
         }
     }
+    return $key==0?$return:array_combine($keys,array_values($return));
+}
+function kshuffle($array)
+{
+    $keys=array_keys($array);
+    shuffle($keys);
+    foreach($keys as $key)
+        $return[$key]=$array[$key];
     return $return;
 }
-
 // 返回日期
 function get_date()
 {
@@ -417,6 +437,7 @@ function check_path($filename='')
             if (! is_dir($Path)){
                 mkdir($Path);
                 @chmod($Path, 0777);
+                @chown($Path,'apache');
             }
         }
     }
@@ -477,10 +498,16 @@ function getPathFile($path,$ext='',&$return=[])
          }
          return $return;
 }
+function get_microtime($len=2)
+{
+   list($utime,$stime)=explode(" ",microtime());
+   $time=($utime+$stime)*pow(10,$len);
+   return substr($time,0,10+$len);
+}
 /**
  * 获取data的中间值的最小值
  *
- * @param unknown $data            
+ * @param unknown $data     
  * @return number[]
  */
 function get_mid_price($data)
@@ -489,7 +516,11 @@ function get_mid_price($data)
                 'mid' => (max($data) + min($data)) / 2,'ave' => array_sum($data) / sizeof($data)
     ];
 }
-
+//生成器
+function gen($data){
+    foreach($data as $k=>$v)
+        yield $k=>$v;
+}
 // 求数组里每个元素对应前面数之和的平均值
 function get_average($data)
 {
@@ -529,7 +560,8 @@ function get_rise($data)
         return 0;
     $start = $data[0];
     $end = end($data);
-    $rise = ($end - $start) / $start;
+    $start==0&&$start=$data[2];
+    $rise =$start==0?0: ($end - $start) / $start;
     return round($rise, 4);
 }
 
@@ -548,14 +580,35 @@ function value_vol($val, $vol = 8000, $max = 50000, $min = 500)
 // 获取小数点的个数
 function get_precision($value)
 {
+    if(is_array($value)){
+        $return=0;       
+        foreach($value as $v){
+            if (strpos($v, ".") > 0) {
+                list ($val, $preci) = explode(".", $v);
+                $len=strlen($preci);
+                if($len>$return)
+                    $return=$len;
+            }
+        }
+        return $return;
+    }else{
     $value = get_float($value);
     if (strpos($value, ".") > 0) {
         list ($val, $preci) = explode(".", $value);
         return strlen($preci);
     } else
         return 0;
+    }
 }
-
+function get_precision_value($value,$len,$type=0)
+{
+    $pow=pow(10,$len);
+    if($type==0)
+        $return=floor($value*$pow)/$pow;
+    else
+        $return= ceil($value*$pow)/$pow;
+    return (string)$return;
+}
 function value_time($value = 0)
 {
     $d = $h = $m = $s = 0;

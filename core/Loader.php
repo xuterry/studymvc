@@ -68,7 +68,10 @@ class Loader
  */
     public static function excep()
     {
-
+        if(!\core\App::debug()){
+            error_reporting(0);         
+            return;
+        }
         error_reporting(E_ALL);
         set_error_handler([
                                 __CLASS__,'apperror'
@@ -162,7 +165,10 @@ class Loader
      */
     public static function logStart()
     {
+        if(!\core\App::debug())
+            return;
         self::$loginfo['start_time']=microtime(1);
+        self::$loginfo['start_mem_peak']=memory_get_peak_usage();
         self::$loginfo['start_mem']=memory_get_usage();
     }
     /**
@@ -179,10 +185,9 @@ class Loader
      */
     public static function logGet($name='')
     {
+        self::logTrace();
        if(!empty($name)&&!isset(self::$loginfo[$name]))
            return null;
-       // if($name=='trace')
-          self::logTrace();
         return !empty($name)?self::$loginfo[$name]:self::$loginfo;
     }
    /**
@@ -190,8 +195,9 @@ class Loader
     */
     public static function logTrace()
     {
-        self::$loginfo['trace'][ 'runtime ']=microtime(1)-self::$loginfo['start_time'];
-        self::$loginfo['trace'][' mem ']=get_round((memory_get_usage()-self::$loginfo['start_mem'])/1024);
+        self::$loginfo['trace']['runtime']=microtime(1)-self::$loginfo['start_time'];
+        self::$loginfo['trace']['mem']=get_round((memory_get_usage()-self::$loginfo['start_mem'])/1024);
+        self::$loginfo['trace']['mem_peak']=get_round((memory_get_peak_usage()-self::$loginfo['start_mem_peak'])/1024);
         self::$loginfo['trace']['includefile']=get_included_files();
     }
     public static function parseName($name, $type = 0, $ucfirst = true)

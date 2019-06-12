@@ -63,7 +63,7 @@ class Request implements ArrayAccess, IteratorAggregate
 
     function __construct()
     {
-      //  var_dump($_SERVER);
+        //dump($_SERVER);
         $this->data['url'] = $_SERVER['REQUEST_URI'];
         // var_dump($this);exit();
         $this->data['ip']=$_SERVER['REMOTE_ADDR'];
@@ -71,7 +71,12 @@ class Request implements ArrayAccess, IteratorAggregate
         $this->data['get'] = $_GET;
         $this->data['post'] = $_POST;
         !empty($_FILES)&&$this->data['file']=$_FILES;
-        $this->data['domain'] = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'];
+        if(isset( $_SERVER['REQUEST_SCHEME']))
+            $this->data['domain'] = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'];
+        elseif(isset($_SERVER['HTTP_HOST']))
+            $this->data['domain'] = "http://". $_SERVER['HTTP_HOST'];          
+        else 
+            $this->data['domain']=$this->data['ip'];
         $this->urlPath = $this->urlPath();
         $this->setParmas();
     }
