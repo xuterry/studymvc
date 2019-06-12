@@ -120,7 +120,8 @@ class rsaEncode
        $str='';
        $n = $this->biHighIndex($this->m);
        for ($i = $n; $i > -1; --$i) {
-           $str.= dechex($this->m['digits'][$i]);
+           $char= str_pad(dechex($this->m['digits'][$i]),4,'0',STR_PAD_LEFT);
+           $str.=$char;
        }
        return $str;
    }
@@ -173,6 +174,7 @@ class rsaEncode
        }
        // Someone give me a logical xor, please.
        $result['isNeg'] = $x['isNeg'] != $y['isNeg'];
+       return $result;
    }
    function BarrettMu_powMod($x, $y)
    {
@@ -188,6 +190,7 @@ class rsaEncode
           $k = $this->biShiftRight($k, 1);
            if ($k['digits'][0] == 0 && $this->biHighIndex($k) == 0) break;
            $a = $this->BarrettMu_multiplyMod($a, $a);
+           //dump($k,$a);
        }
        return $result;
    }
